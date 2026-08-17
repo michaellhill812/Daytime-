@@ -31,8 +31,12 @@ async function boot() {
 
 void boot();
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Only the top-level app installs a worker: an embedded copy has no business
+// claiming the host origin's scope, and /sw.js won't exist there anyway.
+if ('serviceWorker' in navigator && import.meta.env.PROD && window.top === window.self) {
   window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/sw.js');
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // No worker means no offline shell — the app itself is unaffected.
+    });
   });
 }
