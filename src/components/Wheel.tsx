@@ -162,15 +162,19 @@ export default function Wheel({
               >
                 {seg.domain.name}
               </text>
-              <text
-                x={label.x}
-                y={countY}
-                className="spoke__count"
-                textAnchor={anchor}
-                dominantBaseline="middle"
-              >
-                {seg.openCount === 0 ? 'clear' : `${seg.openCount} open`}
-              </text>
+              {/* "clear" is a task-count word; a domain that is a procedure and
+                  holds no tasks says nothing rather than something meaningless. */}
+              {!(seg.domain.guideDocId && seg.total === 0) && (
+                <text
+                  x={label.x}
+                  y={countY}
+                  className="spoke__count"
+                  textAnchor={anchor}
+                  dominantBaseline="middle"
+                >
+                  {seg.openCount === 0 ? 'clear' : `${seg.openCount} open`}
+                </text>
+              )}
             </g>
 
           </g>

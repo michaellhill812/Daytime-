@@ -144,6 +144,8 @@ export function ringSegments(state: DaytimeState, now: Date): RingSegment[] {
 
 export interface DomainSnapshot {
   domain: Domain;
+  /** The domain's own reference text, shown before anything else. */
+  guide: Doc | null;
   shortGoals: Goal[];
   longGoals: Goal[];
   /** Open tasks, most salient first. */
@@ -182,6 +184,7 @@ export function domainSnapshot(
 
   return {
     domain,
+    guide: state.docs.find((d) => d.id === domain.guideDocId) ?? null,
     shortGoals: goals.filter((g) => g.horizon === 'short'),
     longGoals: goals.filter((g) => g.horizon === 'long'),
     open: tasks.filter((t) => !t.done).sort((a, b) => salience(b, now) - salience(a, now)),

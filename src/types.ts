@@ -20,6 +20,12 @@ export interface Domain {
   /** Hex accent used for the spoke and domain chrome. The ring uses priority colors instead. */
   accent: string;
   order: number;
+  /**
+   * A document that *is* this domain, rather than one filed under it — a
+   * routine, a procedure, something you open the spoke to read. When set, the
+   * domain leads with this document's text instead of with a task list.
+   */
+  guideDocId?: string;
 }
 
 export interface Goal {

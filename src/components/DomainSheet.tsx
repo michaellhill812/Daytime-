@@ -76,13 +76,25 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
       title={snap.domain.name}
       subtitle={
         ring.total === 0
-          ? 'Nothing filed here yet'
+          ? // A domain whose whole point is its guide isn't "empty"
+            snap.guide
+            ? undefined
+            : 'Nothing filed here yet'
           : `${ring.openCount} open · ${ring.done} of ${ring.total} done${
               ring.overdueCount > 0 ? ` · ${ring.overdueCount} overdue` : ''
             }`
       }
       accent={snap.domain.accent}
     >
+      {snap.guide && (
+        <section className="guide">
+          <p className="guide__text">{snap.guide.body}</p>
+          <button type="button" className="guide__edit" onClick={() => openDoc(snap.guide!.id)}>
+            Open on the Wall to edit
+          </button>
+        </section>
+      )}
+
       <div className="quick-add">
         <input
           className="field"
@@ -112,7 +124,12 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
         >
           {dueChoice === 'none' ? 'Someday' : dueChoice === 'today' ? 'Today' : 'Tomorrow'}
         </button>
-        <button type="button" className="btn btn--primary" onClick={submit} disabled={!draft.trim()}>
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={submit}
+          disabled={!draft.trim()}
+        >
           Add
         </button>
       </div>
@@ -160,16 +177,19 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
         )}
       </section>
 
-      {snap.docs.length > 0 && (
+      {/* The guide is already shown in full above — don't list it again */}
+      {snap.docs.filter((d) => d.id !== snap.guide?.id).length > 0 && (
         <section className="block">
           <h3 className="block__title">On the Wall</h3>
           <div className="chips">
-            {snap.docs.map((doc) => (
-              <button key={doc.id} type="button" className="chip" onClick={() => openDoc(doc.id)}>
-                {doc.pinned && <span className="chip__pin" aria-hidden />}
-                {doc.title}
-              </button>
-            ))}
+            {snap.docs
+              .filter((d) => d.id !== snap.guide?.id)
+              .map((doc) => (
+                <button key={doc.id} type="button" className="chip" onClick={() => openDoc(doc.id)}>
+                  {doc.pinned && <span className="chip__pin" aria-hidden />}
+                  {doc.title}
+                </button>
+              ))}
           </div>
         </section>
       )}

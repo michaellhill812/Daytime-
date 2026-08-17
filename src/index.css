@@ -932,6 +932,35 @@ button {
 
 /* --------------------------------------------------------------- inputs -- */
 
+/* A domain that is a procedure rather than a to-do list leads with its text. */
+.guide {
+  margin: 6px 0 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--sheet-accent, #fff) 6%, rgba(255, 255, 255, 0.03));
+  border: 1px solid color-mix(in srgb, var(--sheet-accent, #fff) 18%, transparent);
+}
+
+.guide__text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.62;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.guide__edit {
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.guide__edit:hover {
+  color: var(--dim);
+}
+
 .quick-add {
   display: flex;
   gap: 7px;
