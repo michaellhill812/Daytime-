@@ -1,6 +1,11 @@
 import type { DaytimeState } from '../types';
 
-export const SCHEMA_VERSION = 1;
+/**
+ * Bumped to 2 when the placeholder dataset was replaced with real reference
+ * documents. A version mismatch discards the saved state and re-seeds, which is
+ * exactly what's wanted here — the old state was sample data.
+ */
+export const SCHEMA_VERSION = 2;
 
 /**
  * Everything the app needs from persistence. The interface is async so a

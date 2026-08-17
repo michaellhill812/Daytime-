@@ -18,11 +18,14 @@ import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent }
  * spin and swipe to pass through it.
  */
 
-const SPIN_THRESHOLD_DEG = 200; // roughly half a turn
+/** A little over a quarter turn — enough arc to feel like a dial, short enough to complete in one comfortable sweep. */
+const SPIN_THRESHOLD_DEG = 100;
 const SPIN_MIN_RADIUS = 44; // ignore wobble near the pivot
 const SWIPE_MIN_PX = 64;
 const SWIPE_MAX_MS = 1000;
 const SWIPE_AXIS_RATIO = 1.4; // vertical must clearly beat horizontal
+/** Past this much curve, a drag was a turn that fell short — not a swipe. Scales with the spin threshold. */
+const SWIPE_MAX_CURVE_DEG = 55;
 const TAP_SLOP_PX = 12;
 const TAP_MAX_MS = 500;
 
@@ -175,7 +178,7 @@ export function useNavGestures({
 
       // Only surface the visual cue once the motion is unmistakably rotational,
       // so a plain drag doesn't make the screen wobble.
-      setSpinAngle(Math.abs(s.accumAngle) > 25 ? s.accumAngle : 0);
+      setSpinAngle(Math.abs(s.accumAngle) > 15 ? s.accumAngle : 0);
     },
     [onSpin, reset],
   );
@@ -201,7 +204,7 @@ export function useNavGestures({
 
       const isVertical = Math.abs(dy) > Math.abs(dx) * SWIPE_AXIS_RATIO;
       const fastEnough = dt <= SWIPE_MAX_MS;
-      const notARotation = Math.abs(accumAngle) < 100;
+      const notARotation = Math.abs(accumAngle) < SWIPE_MAX_CURVE_DEG;
 
       if (!isVertical || !fastEnough || !notARotation) return;
       if (scrollWouldConsume(target, dy)) return;

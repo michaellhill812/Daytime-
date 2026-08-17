@@ -26,13 +26,15 @@ All three gestures come out of a single hook, `useNavGestures`, rather than thre
 | Gesture | Goes to | Resolved |
 |---|---|---|
 | Tap the background | Wall | on release — barely moved, quickly let go |
-| Turn in a circle | Wheel | mid-gesture, at 200° of accumulated angle |
+| Turn in a circle | Wheel | mid-gesture, at 100° of accumulated angle |
 | Swipe up | World | on release — vertical, fast, not a rotation |
 | Swipe down | back out of World | same |
 
-**The spin** is a circular drag: the hook tracks the pointer's angle around the screen centre and accumulates signed deltas, ignoring wobble within 44px of the pivot. It fires the moment the threshold is crossed, so it feels like a dial clicking over rather than a verdict passed after you let go. A ring fills on screen as you turn, because half a turn with no feedback feels like nothing is happening until suddenly it is.
+**The spin** is a circular drag: the hook tracks the pointer's angle around the screen centre and accumulates signed deltas, ignoring wobble within 44px of the pivot. It fires the moment the threshold is crossed, so it feels like a dial clicking over rather than a verdict passed after you let go. A ring fills on screen as you turn, because a turn with no feedback feels like nothing is happening until suddenly it is.
 
-Two escape hatches keep the gestures from fighting the content underneath: `data-gesture="block"` on anything owning its own pointer handling (sheets, inputs, the rail), and `data-gesture="opaque"` on things that should absorb taps but still let a spin or swipe pass through (the wheel graphic, Wall cards). A swipe is also ignored when a scrollable ancestor could still absorb it, so scrolling a list never teleports you to another view.
+The threshold is a little over a quarter turn. A half turn was the first attempt and was worse in both directions — long enough to be a chore, and long enough that the hand drifts off the arc and the accumulator stalls. `SWIPE_MAX_CURVE_DEG` moves with it: past that much curve a drag is a turn that fell short, not a swipe.
+
+Two escape hatches keep the gestures from fighting the content underneath: `data-gesture="block"` on anything owning its own pointer handling (sheets, inputs, the rail), and `data-gesture="opaque"` on things that should absorb taps but still let a spin or swipe pass through (Wall cards, and inside the wheel the tap wedges, hub, and domain labels — but *not* the `<svg>` itself, whose square box would otherwise swallow every tap in the empty corners around the wheel). A swipe is also ignored when a scrollable ancestor could still absorb it, so scrolling a list never teleports you to another view.
 
 Two non-obvious things this cost, both now handled in code:
 
@@ -85,14 +87,31 @@ src/
   lib/                    date, polar geometry, ids
   components/             Wheel, sheets, task rows, overlays
   views/                  WheelView, WallView, WorldView
-  data/seed.ts            placeholder data, generated relative to today
+  data/seed.ts            the four domains and the real Wall documents
+public/docs/              the source files those documents link to
 ```
 
-## What is real and what is placeholder
+## What is in it
 
-Real: the data model, storage and its migration guard, all selectors, the gestures, and the three views. Tasks, documents, events, day notes and domains can be created, edited, completed, linked and deleted, and everything survives a reload.
+Nothing in this app is sample data. There are no invented tasks, goals, events or day notes — invented data makes it impossible to tell at a glance what is real, which is the one thing a personal HUD cannot afford. The Wheel starts empty and fills with whatever you actually put in it.
 
-Placeholder: the seed dataset in `src/data/seed.ts`, generated relative to the current date so a fresh install always shows a plausible day. It is written on first run and never again.
+The Wall ships with seven real reference documents, each carrying its full text so it is readable and searchable in the app, and linking to its source file in `public/docs/`:
+
+| Document | Domain |
+|---|---|
+| 5-Day Machine Routine | Exercise |
+| Daily schedule | Personal |
+| Two-day workshop — summary | Personal |
+| Steady the Base, Then Build (workbook) | Personal |
+| Career research findings | Work |
+| Resume | Work |
+| AI project portfolio | Work |
+
+The seed is written on first run and never again, so edits are never overwritten. `SCHEMA_VERSION` in `src/store/storage.ts` guards that: bumping it discards saved state and re-seeds, which is how the placeholder dataset was retired.
+
+### The embed build
+
+`VITE_EMBED=1 npm run build` produces a variant with attachment links omitted, for inlining into a single self-contained HTML file that has no file server behind it. Document text is identical; only the links to `public/docs/` are dropped, so the embed never shows a dead link.
 
 Not built yet, and worth deciding on before they are:
 

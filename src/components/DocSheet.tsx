@@ -32,11 +32,13 @@ export default function DocSheet({ docId, onClose }: { docId: string | null; onC
       subtitle={`${KIND_LABEL[doc.kind] ?? 'Item'}${domain ? ` · ${domain.name}` : ''} · updated ${formatShortDay(new Date(doc.updatedAt))}`}
       accent={domain?.accent}
     >
+      {/* Size to the content and let the sheet scroll: a long reference document
+          is unreadable through a six-row porthole. */}
       <textarea
         className="field field--body"
         value={doc.body ?? ''}
         placeholder="Write it down…"
-        rows={6}
+        rows={Math.min(Math.max((doc.body ?? '').split('\n').length + 1, 6), 80)}
         onChange={(e) => store.updateDoc(doc.id, { body: e.target.value })}
       />
 

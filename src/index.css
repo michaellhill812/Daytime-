@@ -212,19 +212,22 @@ button {
   opacity: 0.9;
 }
 
+/* The label group is its own tap target, so the glyphs must stay hit-testable. */
+.spoke__labels {
+  cursor: pointer;
+}
+
 .spoke__label {
   fill: var(--text);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.02em;
-  pointer-events: none;
 }
 
 .spoke__count {
   fill: var(--faint);
   font-size: 10.5px;
   letter-spacing: 0.05em;
-  pointer-events: none;
 }
 
 .spoke__cap--late {
@@ -964,6 +967,9 @@ button {
   resize: vertical;
   line-height: 1.5;
   font-family: inherit;
+  /* Reference documents keep their own line breaks and column alignment. */
+  white-space: pre-wrap;
+  tab-size: 2;
 }
 
 .field--time,

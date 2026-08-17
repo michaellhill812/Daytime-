@@ -46,7 +46,6 @@ export default function Wheel({
       viewBox={`0 0 ${SIZE} ${SIZE}`}
       role="group"
       aria-label="Task domains"
-      data-gesture="opaque"
     >
       <defs>
         <radialGradient id="hubGlow" cx="50%" cy="42%" r="65%">
@@ -91,6 +90,7 @@ export default function Wheel({
             <path
               d={wedgePath(C, C, HIT_R, start, end)}
               className="spoke__hit"
+              data-gesture="opaque"
               role="button"
               tabIndex={0}
               aria-label={`${seg.domain.name}: ${seg.openCount} open, ${seg.done} of ${seg.total} done`}
@@ -137,24 +137,41 @@ export default function Wheel({
               }
             />
 
-            <text
-              x={label.x}
-              y={nameY}
-              className="spoke__label"
-              textAnchor={anchor}
-              dominantBaseline="middle"
+            {/* The label sits outside the tap wedge, so it carries its own target —
+                tapping a domain's name should open that domain, not fall through. */}
+            <g
+              className="spoke__labels"
+              data-gesture="opaque"
+              role="button"
+              tabIndex={0}
+              aria-label={`${seg.domain.name} details`}
+              onClick={() => onSelectDomain(seg.domain.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectDomain(seg.domain.id);
+                }
+              }}
             >
-              {seg.domain.name}
-            </text>
-            <text
-              x={label.x}
-              y={countY}
-              className="spoke__count"
-              textAnchor={anchor}
-              dominantBaseline="middle"
-            >
-              {seg.openCount === 0 ? 'clear' : `${seg.openCount} open`}
-            </text>
+              <text
+                x={label.x}
+                y={nameY}
+                className="spoke__label"
+                textAnchor={anchor}
+                dominantBaseline="middle"
+              >
+                {seg.domain.name}
+              </text>
+              <text
+                x={label.x}
+                y={countY}
+                className="spoke__count"
+                textAnchor={anchor}
+                dominantBaseline="middle"
+              >
+                {seg.openCount === 0 ? 'clear' : `${seg.openCount} open`}
+              </text>
+            </g>
 
           </g>
         );
@@ -163,6 +180,7 @@ export default function Wheel({
       {/* Hub — the day's whole mental load in one number */}
       <g
         className="hub"
+        data-gesture="opaque"
         role="button"
         tabIndex={0}
         aria-label={`${focusCount} things need you today`}
