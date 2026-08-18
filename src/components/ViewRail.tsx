@@ -1,15 +1,15 @@
 import type { ViewId } from '../types';
 
-const VIEWS: { id: ViewId; label: string }[] = [
-  { id: 'wheel', label: 'Wheel' },
-  { id: 'wall', label: 'Wall' },
-  { id: 'world', label: 'World' },
+const VIEWS: { id: ViewId; label: string; key: string }[] = [
+  { id: 'wheel', label: 'Wheel', key: '1' },
+  { id: 'wall', label: 'Wall', key: '2' },
+  { id: 'world', label: 'World', key: '3' },
 ];
 
 /**
- * Three dots at the bottom edge. Gestures are the intended way to move around;
- * this exists so the app is never a guessing game — it says where you are, and
- * it works as a fallback on a trackpad where a spin is awkward.
+ * The only way to move between views. Full width and split into three equal
+ * targets so it can be hit without looking, but quiet enough to read as an edge
+ * of the screen rather than a toolbar sitting on top of the content.
  */
 export default function ViewRail({
   current,
@@ -19,17 +19,17 @@ export default function ViewRail({
   onNavigate: (view: ViewId) => void;
 }) {
   return (
-    <nav className="rail" data-gesture="block" aria-label="Views">
+    <nav className="rail" aria-label="Views">
       {VIEWS.map((v) => (
         <button
           key={v.id}
           type="button"
-          className={`rail__dot${current === v.id ? ' is-current' : ''}`}
-          aria-label={v.label}
-          aria-current={current === v.id}
+          className={`rail__tab${current === v.id ? ' is-current' : ''}`}
+          aria-current={current === v.id ? 'page' : undefined}
+          title={`${v.label} (${v.key})`}
           onClick={() => onNavigate(v.id)}
         >
-          <span className="rail__mark" />
+          <span className="rail__mark" aria-hidden />
           <span className="rail__label">{v.label}</span>
         </button>
       ))}

@@ -80,7 +80,6 @@ export default function WallView({ active }: { active: boolean }) {
               addDoc();
             }
           }}
-          data-gesture="opaque"
         >
           <span className="card--add__plus" aria-hidden>
             +
@@ -111,7 +110,6 @@ function WallCard({ doc, onOpen }: { doc: Doc; onOpen: () => void }) {
           onOpen();
         }
       }}
-      data-gesture="opaque"
       style={{ '--card-accent': domain?.accent ?? 'rgba(255,255,255,0.22)' } as React.CSSProperties}
     >
       <span className="card__rule" aria-hidden />

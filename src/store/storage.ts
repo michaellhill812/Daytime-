@@ -4,8 +4,9 @@ import type { DaytimeState } from '../types';
  * A version mismatch discards the saved state and re-seeds.
  *   2 — placeholder dataset replaced with real reference documents
  *   3 — Daily Routine and 60s Reset domains added
+ *   4 — Self-Care merge, Finances + Sessions domains, verbatim document bodies
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /**
  * Everything the app needs from persistence. The interface is async so a

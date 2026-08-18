@@ -1,6 +1,6 @@
 # Daytime
 
-A personal productivity heads-up display. One user, three views — **Wheel**, **Wall**, and **World** — over a single shared dataset, reached by gesture rather than chrome.
+A personal productivity heads-up display. One user, three views — **Wheel**, **Wall**, and **World** — over a single shared dataset.
 
 ```bash
 npm install
@@ -15,33 +15,15 @@ npm run preview  # serve the build
 
 ### Platform: React + TypeScript + Vite, installable as a PWA
 
-A web app that installs to the iPhone home screen. It runs on desktop and phone from one codebase, needs no App Store round trip to iterate on, and — decisively for this design — pointer events give exact control over the three custom gestures. The trade-off accepted: no accelerometer, so a physical "twist the phone" gesture is out of scope.
+A web app that installs to the iPhone home screen. It runs on desktop and phone from one codebase and needs no App Store round trip to iterate on. The trade-off accepted: no native platform affordances, so anything the browser cannot do is out of scope.
 
 There is no UI framework and no state library. The whole app is React plus about 400 lines of plain CSS; the wheel is hand-drawn SVG. Nothing here needed a dependency, and a HUD that has to feel weightless shouldn't ship a component library's opinions.
 
-### Gestures: one pointer stream, one resolver
+### Navigation: a bottom bar
 
-All three gestures come out of a single hook, `useNavGestures`, rather than three independent listeners that would race each other. One pointer sequence produces at most one gesture:
+Three views, three tabs, full width and split into equal thirds so a tab can be hit without looking. The active tab carries a hairline above it. `1` / `2` / `3` do the same on a keyboard.
 
-| Gesture | Goes to | Resolved |
-|---|---|---|
-| Tap the background | Wall | on release — barely moved, quickly let go |
-| Turn in a circle | Wheel | mid-gesture, at 100° of accumulated angle |
-| Swipe up | World | on release — vertical, fast, not a rotation |
-| Swipe down | back out of World | same |
-
-**The spin** is a circular drag: the hook tracks the pointer's angle around the screen centre and accumulates signed deltas, ignoring wobble within 44px of the pivot. It fires the moment the threshold is crossed, so it feels like a dial clicking over rather than a verdict passed after you let go. A ring fills on screen as you turn, because a turn with no feedback feels like nothing is happening until suddenly it is.
-
-The threshold is a little over a quarter turn. A half turn was the first attempt and was worse in both directions — long enough to be a chore, and long enough that the hand drifts off the arc and the accumulator stalls. `SWIPE_MAX_CURVE_DEG` moves with it: past that much curve a drag is a turn that fell short, not a swipe.
-
-Two escape hatches keep the gestures from fighting the content underneath: `data-gesture="block"` on anything owning its own pointer handling (sheets, inputs, the rail), and `data-gesture="opaque"` on things that should absorb taps but still let a spin or swipe pass through (Wall cards, and inside the wheel the tap wedges, hub, and domain labels — but *not* the `<svg>` itself, whose square box would otherwise swallow every tap in the empty corners around the wheel). A swipe is also ignored when a scrollable ancestor could still absorb it, so scrolling a list never teleports you to another view.
-
-Two non-obvious things this cost, both now handled in code:
-
-- A drag across selectable text makes Chrome fire `pointercancel`, which silently killed whichever gesture came next. The gesture surface sets `user-select: none`; selection is re-enabled only where there are words worth copying.
-- `setPointerCapture` on the surface looks like the right robustness fix and is not — it retargets `click` to the capturing element and swallows every button underneath.
-
-Gestures are the intended way to move, but they are not the only way: three dots at the bottom edge show where you are and work as buttons, and `1` / `2` / `3` switch views on a keyboard.
+This replaced a custom gesture layer — background-tap for Wall, a circular drag for Wheel, swipe-up for World — that resolved all three from a single pointer stream. It worked, and it was still the wrong answer: the spin never stopped feeling unreliable in the hand (a long arc gives the finger too many chances to drift off it), and the whole scheme read as gimmick rather than affordance. A visible bar is duller and better. The lesson is kept here rather than in the code, which is now much smaller for it.
 
 ### Data: one model, three projections
 
@@ -77,7 +59,6 @@ A service worker caches the app shell, so it opens offline; there is nothing to 
 src/
   App.tsx                 navigation shell — Wheel/Wall are one layer, World rides above
   types.ts                the data model
-  hooks/useNavGestures.ts tap / spin / swipe resolved from one pointer stream
   hooks/useNow.ts         ticking clock, so "6:30pm" becomes "2d overdue" on its own
   store/
     storage.ts            StorageAdapter + local and in-memory implementations
@@ -85,9 +66,9 @@ src/
     selectors.ts          salience, ring state, cross-view links, calendar queries
     context.tsx           React bindings
   lib/                    date, polar geometry, ids
-  components/             Wheel, sheets, task rows, overlays
+  components/             Wheel, sheets, task rows, the bottom bar
   views/                  WheelView, WallView, WorldView
-  data/seed.ts            the four domains and the real Wall documents
+  data/seed.ts            the domains and the Wall documents, source text only
 public/docs/              the source files those documents link to
 ```
 
@@ -95,17 +76,22 @@ public/docs/              the source files those documents link to
 
 Nothing in this app is sample data. There are no invented tasks, goals, events or day notes — invented data makes it impossible to tell at a glance what is real, which is the one thing a personal HUD cannot afford. The Wheel starts empty and fills with whatever you actually put in it.
 
-The Wall ships with seven real reference documents, each carrying its full text so it is readable and searchable in the app, and linking to its source file in `public/docs/`:
+**Document bodies are source text only.** Every line is transcribed from the file it links to — nothing paraphrased, summarised, re-headed or editorialised, and no connective sentences added. Content may be omitted, never reworded, so anything read in the app can be trusted as the document's own words. Commentary about a document belongs in conversation, not in its body.
+
+A domain can also name one document as its `guideDocId`: the document that *is* the domain rather than one filed under it. Those domains lead with that text instead of a task list, and omit the task-count line, since "clear" means nothing on a procedure.
+
+The Wall ships with eight reference documents, each carrying its full text so it is readable and searchable in the app, and linking to its source file in `public/docs/`:
 
 | Document | Domain |
 |---|---|
-| 5-Day Machine Routine | Exercise |
-| Daily schedule | Personal |
-| Two-day workshop — summary | Personal |
-| Steady the Base, Then Build (workbook) | Personal |
-| Career research findings | Work |
-| Resume | Work |
-| AI project portfolio | Work |
+| 60 Second Reset Framework | 60s Reset (guide) |
+| Daily Schedule Starting 8/17 | Daily Routine (guide) |
+| Michael's 5-Day Machine Routine | Self-Care |
+| Your Two Days, and the Plan From Here | Sessions |
+| Steady the Base, Then Build | Sessions |
+| Career Research Findings | Work |
+| Michael Hill — Resume | Work |
+| AI Project Experience | Work |
 
 The seed is written on first run and never again, so edits are never overwritten. `SCHEMA_VERSION` in `src/store/storage.ts` guards that: bumping it discards saved state and re-seeds, which is how the placeholder dataset was retired.
 

@@ -151,7 +151,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
         </div>
 
         {adding && (
-          <div className="quick-add" data-gesture="block">
+          <div className="quick-add">
             <input
               className="field"
               autoFocus
@@ -238,7 +238,6 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
           <h3 className="block__title">What happened</h3>
           <textarea
             className="field field--body"
-            data-gesture="block"
             rows={3}
             placeholder="A line about the day…"
             value={note}

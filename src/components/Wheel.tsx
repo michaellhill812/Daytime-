@@ -90,7 +90,6 @@ export default function Wheel({
             <path
               d={wedgePath(C, C, HIT_R, start, end)}
               className="spoke__hit"
-              data-gesture="opaque"
               role="button"
               tabIndex={0}
               aria-label={`${seg.domain.name}: ${seg.openCount} open, ${seg.done} of ${seg.total} done`}
@@ -141,7 +140,6 @@ export default function Wheel({
                 tapping a domain's name should open that domain, not fall through. */}
             <g
               className="spoke__labels"
-              data-gesture="opaque"
               role="button"
               tabIndex={0}
               aria-label={`${seg.domain.name} details`}
@@ -184,7 +182,6 @@ export default function Wheel({
       {/* Hub — the day's whole mental load in one number */}
       <g
         className="hub"
-        data-gesture="opaque"
         role="button"
         tabIndex={0}
         aria-label={`${focusCount} things need you today`}

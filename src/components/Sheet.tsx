@@ -32,7 +32,7 @@ export default function Sheet({ open, onClose, title, subtitle, accent, children
   if (!open) return null;
 
   return createPortal(
-    <div className="sheet-layer" data-gesture="block">
+    <div className="sheet-layer">
       <button
         type="button"
         className="sheet-scrim"
