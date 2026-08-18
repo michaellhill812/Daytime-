@@ -271,7 +271,32 @@ as $$
     and public.is_workspace_member(p_workspace);
 $$;
 
+-- --------------------------------------------------------------- grants --
+-- Supabase grants these to new objects in `public` by default. Stating them
+-- anyway costs nothing and removes a whole class of "permission denied" that is
+-- miserable to diagnose from the browser.
+
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete
+  on public.workspaces, public.workspace_members,
+     public.workspace_invites, public.workspace_state
+  to authenticated;
+grant execute on function
+  public.ensure_workspace(), public.save_state(uuid, jsonb, bigint),
+  public.invite_member(uuid, text, text), public.workspace_people(uuid)
+  to authenticated;
+
 -- ---------------------------------------------------------- realtime --
 
-alter publication supabase_realtime add table public.workspace_state;
+-- Guarded so the whole file stays safe to run twice: adding a table that is
+-- already in the publication is an error, not a no-op.
+do $$
+begin
+  alter publication supabase_realtime add table public.workspace_state;
+exception
+  when duplicate_object then null;
+  when undefined_object then
+    raise notice 'supabase_realtime publication not found — enable Realtime for this table in the dashboard';
+end $$;
+
 alter table public.workspace_state replica identity full;

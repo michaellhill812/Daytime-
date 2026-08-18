@@ -1,6 +1,6 @@
 # Putting Daytime in the cloud
 
-Everything in the app is already written. This is the part only you can do — creating the accounts and pasting four values. Roughly 20 minutes.
+Everything in the app is already written, and the database schema has been run against a real PostgreSQL 16 server: it applies cleanly, re-runs cleanly, and passes 15 checks covering the access rules and the concurrent-write handling. This is the part only you can do — creating the accounts and pasting two values. Roughly 20 minutes.
 
 Until you finish it, nothing changes: with no credentials set, the app runs exactly as it does now, entirely in one browser.
 
@@ -30,11 +30,25 @@ The anon key being public is not an oversight: it identifies the app, not you. W
 
 ## Step 2 — Create the tables
 
-1. In the left sidebar: **SQL Editor** → **New query**.
-2. Open `supabase/schema.sql` from this repo, copy the whole file, paste it in.
-3. **Run.** You should see "Success. No rows returned."
+**The file to copy is here:**
 
-That one file creates the tables, the security rules, and the save function. It's safe to run twice if you need to.
+<https://github.com/michaellhill812/Daytime-/blob/claude/new-session-pn540o/supabase/schema.sql>
+
+Open that, hit the **copy** button at the top right of the file (or use the [raw view](https://raw.githubusercontent.com/michaellhill812/Daytime-/claude/new-session-pn540o/supabase/schema.sql) and select all).
+
+1. In Supabase's left sidebar: **SQL Editor** → **New query**.
+2. Paste the whole file in.
+3. **Run** (or ⌘/Ctrl + Enter). You should see **"Success. No rows returned."**
+
+That one file creates the tables, the security rules, the save function, and the invite system. It is safe to run again — re-running it is how you'd apply a later change.
+
+**If you see an error**, paste it to me rather than trying to fix it. The likely ones:
+
+| Error mentions | What it means |
+|---|---|
+| `permission denied for schema auth` | You're on a restricted role — use the SQL Editor as the project owner, not a read-only member |
+| `already exists` | Harmless, it means part of it ran before. It should still finish. |
+| anything else | Send it to me |
 
 ## Step 3 — Turn on email sign-in
 
