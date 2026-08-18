@@ -5,7 +5,7 @@ import { StoreProvider } from './store/context';
 import { DaytimeStore } from './store/store';
 import { LocalStorageAdapter } from './store/storage';
 import { createSeedState } from './data/seed';
-import { cloudEnabled } from './cloud/config';
+import { cloudEnabled, cloudUrlProblem } from './cloud/config';
 import './index.css';
 
 function mount(node: React.ReactNode) {
@@ -34,11 +34,33 @@ async function bootLocal() {
 
 /** Cloud: sign in, then the same app over a shared document. */
 async function bootCloud() {
+  // Say what is wrong with the configuration here, where it is still one
+  // sentence away from the cause. Left to fail on its own it surfaces as an
+  // opaque network error inside the first request.
+  if (cloudUrlProblem) {
+    mount(<ConfigError message={cloudUrlProblem} />);
+    return;
+  }
+
   const [{ createSupabaseClient }, { default: CloudBoot }] = await Promise.all([
     import('./cloud/supabaseAdapter'),
     import('./cloud/CloudBoot'),
   ]);
   mount(<CloudBoot client={createSupabaseClient()} />);
+}
+
+function ConfigError({ message }: { message: string }) {
+  return (
+    <div className="boot">
+      <div className="boot__panel">
+        <h1 className="boot__title">Daytime can’t reach its database</h1>
+        <p className="boot__body">{message}</p>
+        <p className="boot__hint">
+          Fix the value in Vercel under Settings → Environment Variables, then redeploy.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 // __CLOUD_BUILD__ is false in the embed build, which lets the bundler drop

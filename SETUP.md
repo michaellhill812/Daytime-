@@ -13,8 +13,8 @@ Four things, and **two of them are secret**. Send me the first two here; keep th
 | # | Value | Where it comes from | Safe to paste in chat? |
 |---|---|---|---|
 | 1 | **Supabase project URL** | Supabase → Project Settings → API | Yes |
-| 2 | **Supabase anon key** | Same page, "anon public" | Yes — it's designed to be public |
-| 3 | ~~service_role key~~ | Same page | **No. Never. It bypasses every security rule.** |
+| 2 | **Publishable / anon key** | Settings → API Keys | Yes — it's designed to be public |
+| 3 | ~~secret / service_role key~~ | Same page | **No. Never. It bypasses every security rule.** |
 | 4 | Vercel + GitHub login | — | **No** — you connect these yourself |
 
 The anon key being public is not an oversight: it identifies the app, not you. What actually protects the data is row-level security in the database, which is already written in `supabase/schema.sql`.
@@ -63,7 +63,11 @@ That one file creates the tables, the security rules, the save function, and the
 **Project Settings → API**, and copy:
 
 - **Project URL** — looks like `https://abcdefgh.supabase.co`
-- **anon public** key — a long string starting `eyJ...`
+- the **publishable / anon** key — either `sb_publishable_...` (current) or `eyJ...` (legacy). Both work.
+
+Supabase moved this page recently. If **Settings → API** looks unfamiliar, try **Settings → API Keys** for the key and **Settings → Data API** for the URL.
+
+**Check the URL before sending it.** It reads `https://<project-ref>.supabase.co`, and the ref is exactly **20 lowercase characters**. Copies made by hand often drop one or two — use the dashboard's copy button.
 
 Send me those two and I'll fill in `.env.local` for local development.
 
