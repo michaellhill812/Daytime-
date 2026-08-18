@@ -6,8 +6,9 @@ import type { DaytimeState } from '../types';
  *   3 — Daily Routine and 60s Reset domains added
  *   4 — Self-Care merge, Finances + Sessions domains, verbatim document bodies
  *   5 — workshop worksheets added; Daily Schedule title trimmed
+ *   6 — the four next steps as tasks; the daily schedule as repeating events
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /**
  * Everything the app needs from persistence. The interface is async so a
@@ -18,6 +19,11 @@ export interface StorageAdapter {
   load(): Promise<DaytimeState | null>;
   save(state: DaytimeState): Promise<void>;
   clear(): Promise<void>;
+  /**
+   * Optional: push changes made elsewhere into this client. Returns an
+   * unsubscribe. Adapters without a backend simply omit it.
+   */
+  subscribe?(onRemote: (state: DaytimeState) => void): () => void;
 }
 
 const KEY = 'daytime.state.v1';

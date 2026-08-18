@@ -104,7 +104,9 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
           const inMonth = day.getMonth() === anchor.getMonth();
           const isToday = isSameDay(day, now);
           const isSelected = isSameDay(day, selected);
-          const events = eventsOnDay(state, day);
+          // Dots mark what makes a day different, so the daily routine is left
+          // out — repeated on all of them, it distinguishes none of them.
+          const events = eventsOnDay(state, day).filter((e) => !e.recurrence);
           const dueTasks = tasksOnDay(state, day);
           const openDue = dueTasks.filter((t) => !t.done);
 

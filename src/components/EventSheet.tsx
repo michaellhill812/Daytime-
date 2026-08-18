@@ -3,13 +3,19 @@ import TaskRow from './TaskRow';
 import { useDaytimeState, useStore } from '../store/context';
 import { domainById, tasksForEvent } from '../store/selectors';
 import { useNow } from '../hooks/useNow';
+import type { CalEvent } from '../types';
 import { formatDayLabel, formatTime } from '../lib/date';
 
-function when(startISO: string, endISO: string | undefined, allDay: boolean): string {
-  const start = new Date(startISO);
-  if (allDay) return `${formatDayLabel(start)} · all day`;
-  const head = `${formatDayLabel(start)} · ${formatTime(start)}`;
-  return endISO ? `${head}–${formatTime(new Date(endISO))}` : head;
+function when(event: CalEvent): string {
+  const start = new Date(event.start);
+  const span = event.end ? `${formatTime(start)}–${formatTime(new Date(event.end))}` : formatTime(start);
+
+  if (event.recurrence) {
+    const every = event.recurrence === 'weekdays' ? 'Weekdays' : 'Every day';
+    return event.allDay ? every : `${every} · ${span}`;
+  }
+  if (event.allDay) return `${formatDayLabel(start)} · all day`;
+  return `${formatDayLabel(start)} · ${span}`;
 }
 
 /** World event detail, openable from any view. */
@@ -35,7 +41,7 @@ export default function EventSheet({
       open
       onClose={onClose}
       title={event.title}
-      subtitle={when(event.start, event.end, event.allDay)}
+      subtitle={when(event)}
       accent={domain?.accent}
     >
       {event.location && (

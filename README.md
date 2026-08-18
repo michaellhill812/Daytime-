@@ -45,11 +45,21 @@ The ring answers two questions at once, as decided: **fill = completion, hue = p
 
 Wheel geometry is a pure function of the domain count, so adding or removing a domain re-lays the wheel out with no other change.
 
-### Persistence: local now, swappable later
+### Persistence: two adapters behind one interface
 
-Everything is in `localStorage` behind a `StorageAdapter` interface (`load` / `save` / `clear`), which is async even though the local implementation is not. Hydration is awaited before the first render, writes are debounced and flushed when the tab hides. Dropping in a networked adapter later is a one-line change in `main.tsx` — no view knows where its data comes from. A `MemoryStorageAdapter` is included for tests.
+Storage sits behind a `StorageAdapter` (`load` / `save` / `clear`, plus an optional `subscribe` for live updates). It is async even where the implementation is not, hydration is awaited before the first render, and writes are debounced and flushed when the tab hides. No view knows where its data comes from.
 
-A service worker caches the app shell, so it opens offline; there is nothing to sync, because there is no server.
+**Local** (`LocalStorageAdapter`) is the default and the fallback: everything in one browser, no auth, no network. With no Supabase credentials set, this is the whole app — which is what keeps `npm run dev` and the single-file embed working with no backend at all.
+
+**Cloud** (`SupabaseAdapter`) turns on when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present. See [SETUP.md](SETUP.md) for the deployment steps.
+
+The whole state is one JSONB document in one row, written through a compare-and-swap RPC: each save carries the version the client last saw, and a stale write is refused rather than allowed to overwrite. The refusal returns the winner's document in the same round trip, so the loser merges and retries without a second request.
+
+Merging is per entity against the last revision both sides agreed on (`store/merge.ts`). That base is what makes deletion work without tombstones — an id missing from one side means "deleted" only if it was in the base, otherwise the other side just added it. So an edit made at the same moment in a different part of the app survives instead of being thrown away. What it cannot resolve is both sides editing the *same* entity between saves; there the local writer wins, and the honest fix would be CRDTs.
+
+Clients subscribe to their workspace row, so another person's edit lands without a refresh. Access is enforced by row-level security in Postgres rather than by the app, and writes only go through the save function, so the version check cannot be bypassed.
+
+A service worker caches the app shell, so it opens offline.
 
 ---
 
@@ -65,11 +75,19 @@ src/
     store.ts              observable state container and all mutations
     selectors.ts          salience, ring state, cross-view links, calendar queries
     context.tsx           React bindings
+    merge.ts              three-way merge, for two people saving at once
+  cloud/
+    config.ts             is cloud configured? (build-time env)
+    supabaseAdapter.ts    compare-and-swap writes, realtime, conflict merge
+    CloudBoot.tsx         session → workspace → store, then the same App
+    SignIn.tsx            email-link sign-in
+    WorkspaceSheet.tsx    members, invites, sign out
   lib/                    date, polar geometry, ids
   components/             Wheel, sheets, task rows, the bottom bar
   views/                  WheelView, WallView, WorldView
   data/seed.ts            the domains and the Wall documents, source text only
 public/docs/              the source files those documents link to
+supabase/schema.sql       tables, row-level security, and the save RPC
 ```
 
 ## What is in it

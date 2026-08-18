@@ -1236,3 +1236,123 @@ button {
   fill: var(--faint);
   font-size: 15px;
 }
+
+/* ------------------------------------------------------------------ cloud -- */
+
+.gate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--ink);
+}
+
+.gate__card {
+  width: min(400px, 100%);
+  text-align: center;
+}
+
+.gate__title {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+
+.gate__text {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--dim);
+}
+
+.gate__row {
+  display: flex;
+  gap: 8px;
+}
+
+.gate__error {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--alert);
+}
+
+.gate__alt {
+  margin-top: 16px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.gate__alt:hover {
+  color: var(--dim);
+}
+
+/* The account chip doubles as the sync light: it dims while a write is in
+   flight and turns red if one failed, so an unsaved edit is never invisible. */
+.account {
+  position: fixed;
+  top: calc(var(--safe-top) + 14px);
+  right: 16px;
+  z-index: 40;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  transition: all 240ms var(--ease);
+}
+
+.account:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.account--saving {
+  opacity: 0.55;
+}
+
+.account--error {
+  color: var(--alert);
+  border-color: rgba(255, 69, 58, 0.45);
+}
+
+/* Keep the Wall's filter row clear of the chip */
+.wall__head {
+  padding-right: 62px;
+}
+
+.person {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.person:last-child {
+  border-bottom: 0;
+}
+
+.person__email {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.person__role {
+  flex: none;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}

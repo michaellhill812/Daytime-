@@ -223,15 +223,54 @@ export function tasksForEvent(state: DaytimeState, eventId: string): Task[] {
 
 // --------------------------------------------------------------- calendar --
 
+/** Does a repeating event land on this day? */
+function repeatsOn(event: CalEvent, day: Date): boolean {
+  if (startOfDay(day) < startOfDay(new Date(event.start))) return false;
+  if (event.recurrence === 'daily') return true;
+  if (event.recurrence === 'weekdays') {
+    const weekday = day.getDay();
+    return weekday >= 1 && weekday <= 5;
+  }
+  return false;
+}
+
+/** The same event with its clock times moved onto `day`. */
+function occurrenceOn(event: CalEvent, day: Date): CalEvent {
+  const from = new Date(event.start);
+  const start = startOfDay(day);
+  start.setHours(from.getHours(), from.getMinutes(), 0, 0);
+
+  const occurrence: CalEvent = { ...event, start: start.toISOString() };
+
+  if (event.end) {
+    const until = new Date(event.end);
+    const end = startOfDay(day);
+    end.setHours(until.getHours(), until.getMinutes(), 0, 0);
+    // A block that ends earlier than it starts runs past midnight.
+    if (end <= start) end.setDate(end.getDate() + 1);
+    occurrence.end = end.toISOString();
+  }
+
+  return occurrence;
+}
+
 export function eventsOnDay(state: DaytimeState, day: Date): CalEvent[] {
-  return state.events
-    .filter((e) => {
-      const start = new Date(e.start);
-      const end = e.end ? new Date(e.end) : start;
-      // Multi-day events show on every day they span.
-      return startOfDay(start) <= endOfDay(day) && endOfDay(end) >= startOfDay(day);
-    })
-    .sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start.localeCompare(b.start));
+  const found: CalEvent[] = [];
+
+  for (const event of state.events) {
+    if (event.recurrence) {
+      if (repeatsOn(event, day)) found.push(occurrenceOn(event, day));
+      continue;
+    }
+    const start = new Date(event.start);
+    const end = event.end ? new Date(event.end) : start;
+    // Multi-day events show on every day they span.
+    if (startOfDay(start) <= endOfDay(day) && endOfDay(end) >= startOfDay(day)) found.push(event);
+  }
+
+  return found.sort(
+    (a, b) => Number(b.allDay) - Number(a.allDay) || a.start.localeCompare(b.start),
+  );
 }
 
 /** Tasks whose deadline lands on this day — this is how the Wheel shows up in World. */

@@ -6,9 +6,11 @@ import { SCHEMA_VERSION } from '../store/storage';
  *
  * TWO RULES, both deliberate:
  *
- * 1. No invented data. There are no sample tasks, goals, events or day notes —
- *    invented data makes it impossible to tell at a glance what is real, which
- *    is the one thing a personal HUD cannot afford.
+ * 1. No invented data. Every task and event below is transcribed from a source
+ *    document, never made up to fill the screen — being unable to tell at a
+ *    glance what is real is the one thing a personal HUD cannot afford. Where
+ *    something is a judgement call rather than source (a task's priority, an
+ *    event's domain), it is marked as one.
  *
  * 2. Document bodies are SOURCE TEXT ONLY. Every line below is transcribed from
  *    the file it links to. Nothing is paraphrased, summarised, re-headed or
@@ -24,6 +26,32 @@ export function createSeedState(now: Date = new Date()): DaytimeState {
    * links are omitted there rather than shipped as dead links.
    */
   const attach = (path: string) => (import.meta.env.VITE_EMBED === '1' ? {} : { url: path });
+
+  // The routine blocks repeat from the date written on the schedule.
+  const routineStart = new Date(now.getFullYear(), 7, 17);
+  const clock = (h: number, m: number) => {
+    const d = new Date(routineStart);
+    d.setHours(h, m, 0, 0);
+    return d.toISOString();
+  };
+  /** One repeating block of the day, verbatim from the schedule. */
+  const block = (
+    title: string,
+    domainId: string,
+    from: [number, number],
+    to?: [number, number],
+  ) => ({
+    id: `ev-routine-${title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')}`,
+    title,
+    domainId,
+    start: clock(from[0], from[1]),
+    ...(to ? { end: clock(to[0], to[1]) } : {}),
+    allDay: false,
+    recurrence: 'daily' as const,
+  });
 
   return {
     version: SCHEMA_VERSION,
@@ -53,8 +81,69 @@ export function createSeedState(now: Date = new Date()): DaytimeState {
     ],
 
     goals: [],
-    tasks: [],
-    events: [],
+    // The four next steps, in the wording of the Working Block Tasks page.
+    // Priorities are a judgement call — the source sets none.
+    tasks: [
+      {
+        id: 'task-research-roles',
+        domainId: 'dom-work',
+        title: 'Research each job category (via claude/llm)',
+        notes: 'Distill and send to Andrew',
+        priority: 3,
+        done: false,
+        docIds: ['doc-career-findings', 'doc-working-block'],
+        eventIds: [],
+      },
+      {
+        id: 'task-revamp-resume',
+        domainId: 'dom-work',
+        title: 'Revamp Resume and send to Andrew',
+        priority: 3,
+        done: false,
+        docIds: ['doc-resume', 'doc-working-block'],
+        eventIds: [],
+      },
+      {
+        id: 'task-job-search',
+        domainId: 'dom-work',
+        title: 'Part-time/Temp Job Search',
+        priority: 3,
+        done: false,
+        docIds: ['doc-working-block'],
+        eventIds: [],
+      },
+      {
+        id: 'task-school-question',
+        domainId: 'dom-work',
+        title: 'IF school, where? when? what?',
+        priority: 2,
+        done: false,
+        docIds: ['doc-working-block'],
+        eventIds: [],
+      },
+    ],
+    // The daily schedule, one repeating block per line. Titles are the
+    // schedule's own; which domain each belongs to is a judgement call.
+    events: [
+      block('Wake-up', 'dom-routine', [6, 30], [8, 0]),
+      block('Brush teeth, Brush hair, Hygiene', 'dom-routine', [8, 0], [8, 30]),
+      block('Workout / Calisthenics', 'dom-selfcare', [8, 30], [9, 30]),
+      block('Shower / Get Dressed', 'dom-routine', [9, 30], [10, 30]),
+      block('Food', 'dom-selfcare', [10, 30], [11, 30]),
+      block(
+        'Working block (Job stuff, research, resumé, apps, internships)',
+        'dom-work',
+        [11, 30],
+        [13, 30],
+      ),
+      block('Walk', 'dom-selfcare', [13, 30], [14, 15]),
+      block('Working block (Job stuff, talk to Andrew)', 'dom-work', [14, 15], [17, 0]),
+      block('Mom chores', 'dom-personal', [17, 0], [18, 0]),
+      block('Dinner / Walk', 'dom-selfcare', [18, 0], [20, 0]),
+      block('Stretch / Mobility', 'dom-selfcare', [20, 0], [20, 30]),
+      block('Read', 'dom-personal', [20, 30], [21, 30]),
+      block('Prep for bed / nighttime hygiene', 'dom-routine', [21, 30]),
+    ],
     dayNotes: [],
 
     docs: [

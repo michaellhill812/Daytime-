@@ -18,7 +18,7 @@ export class DaytimeStore {
 
   constructor(
     initial: DaytimeState,
-    private readonly adapter: StorageAdapter,
+    readonly adapter: StorageAdapter,
     private readonly saveDelayMs = 250,
   ) {
     this.state = initial;
@@ -301,6 +301,22 @@ export class DaytimeStore {
 
   replaceAll = (next: DaytimeState): void => {
     this.commit(next);
+  };
+
+  /**
+   * Take a document that came from somewhere else (another device, another
+   * person). Notifies the UI but does not schedule a save — the server already
+   * has this revision, and writing it back would start a ping-pong.
+   */
+  adoptRemote = (next: DaytimeState): void => {
+    this.state = next;
+    for (const l of this.listeners) l();
+  };
+
+  /** Wire up an adapter's live channel, if it has one. */
+  connect = (): (() => void) => {
+    if (!this.adapter.subscribe) return () => {};
+    return this.adapter.subscribe(this.adoptRemote);
   };
 }
 

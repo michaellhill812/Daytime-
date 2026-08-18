@@ -77,16 +77,25 @@ export interface Doc {
   updatedAt: string;
 }
 
+/** How an event repeats. Absent means it happens once. */
+export type Recurrence = 'daily' | 'weekdays';
+
 export interface CalEvent {
   id: string;
   title: string;
   domainId?: string;
-  /** ISO datetime. */
+  /** ISO datetime. For a repeating event this is the first occurrence. */
   start: string;
   /** ISO datetime. Absent means a point in time rather than a span. */
   end?: string;
   allDay: boolean;
   location?: string;
+  /**
+   * Repeats are stored as one row and expanded when a day is read, rather than
+   * written out as hundreds of copies. Editing the rule then stays a single
+   * edit, and the calendar extends forever without the data growing.
+   */
+  recurrence?: Recurrence;
 }
 
 /** One free-text note per calendar day: what actually happened. */
