@@ -5,8 +5,9 @@ import type { DaytimeState } from '../types';
  *   2 — placeholder dataset replaced with real reference documents
  *   3 — Daily Routine and 60s Reset domains added
  *   4 — Self-Care merge, Finances + Sessions domains, verbatim document bodies
+ *   5 — workshop worksheets added; Daily Schedule title trimmed
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /**
  * Everything the app needs from persistence. The interface is async so a

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Sheet from './Sheet';
+import Diagram from './Diagram';
 import TaskRow from './TaskRow';
 import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
@@ -88,6 +89,7 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
     >
       {snap.guide && (
         <section className="guide">
+          {snap.guide.diagram && <Diagram name={snap.guide.diagram} />}
           <p className="guide__text">{snap.guide.body}</p>
           <button type="button" className="guide__edit" onClick={() => openDoc(snap.guide!.id)}>
             Open on the Wall to edit

@@ -1,4 +1,5 @@
 import Sheet from './Sheet';
+import Diagram from './Diagram';
 import TaskRow from './TaskRow';
 import { useDaytimeState, useStore } from '../store/context';
 import { domainById, tasksForDoc } from '../store/selectors';
@@ -32,6 +33,8 @@ export default function DocSheet({ docId, onClose }: { docId: string | null; onC
       subtitle={`${KIND_LABEL[doc.kind] ?? 'Item'}${domain ? ` · ${domain.name}` : ''} · updated ${formatShortDay(new Date(doc.updatedAt))}`}
       accent={domain?.accent}
     >
+      {doc.diagram && <Diagram name={doc.diagram} />}
+
       {/* Size to the content and let the sheet scroll: a long reference document
           is unreadable through a six-row porthole. */}
       <textarea

@@ -1189,3 +1189,50 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --------------------------------------------------------------- diagrams -- */
+
+.diagram {
+  margin: 4px 0 18px;
+  padding: 14px 8px 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+}
+
+.diagram__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.diagram__shape {
+  stroke: var(--sheet-accent, var(--dim));
+  stroke-width: 2;
+  opacity: 0.85;
+}
+
+.diagram__tick {
+  stroke: var(--sheet-accent, var(--dim));
+  stroke-width: 1.5;
+  opacity: 0.45;
+}
+
+.diagram__center {
+  fill: var(--text);
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+.diagram__label {
+  fill: var(--text);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.diagram__note {
+  fill: var(--faint);
+  font-size: 15px;
+}

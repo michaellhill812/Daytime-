@@ -78,14 +78,21 @@ Nothing in this app is sample data. There are no invented tasks, goals, events o
 
 **Document bodies are source text only.** Every line is transcribed from the file it links to — nothing paraphrased, summarised, re-headed or editorialised, and no connective sentences added. Content may be omitted, never reworded, so anything read in the app can be trusted as the document's own words. Commentary about a document belongs in conversation, not in its body.
 
+A document whose content is a drawing names a `diagram` key instead of carrying markup, so the drawing lives in code and the data stays plain. Edge labels in the state triangle are set horizontally beside each side rather than rotated along it as in the original — at phone width, text on a 60° slant is not readable. The structure and wording are the source's.
+
 A domain can also name one document as its `guideDocId`: the document that *is* the domain rather than one filed under it. Those domains lead with that text instead of a task list, and omit the task-count line, since "clear" means nothing on a procedure.
 
-The Wall ships with eight reference documents, each carrying its full text so it is readable and searchable in the app, and linking to its source file in `public/docs/`:
+The Wall ships with thirteen reference documents, each carrying its full text so it is readable and searchable in the app, and linking to its source file in `public/docs/`:
 
 | Document | Domain |
 |---|---|
 | 60 Second Reset Framework | 60s Reset (guide) |
-| Daily Schedule Starting 8/17 | Daily Routine (guide) |
+| Daily Schedule | Daily Routine (guide) |
+| Working Block Tasks | Work |
+| Limiting Beliefs | Sessions |
+| Limiting Beliefs Redefined | Sessions |
+| Vision + Value Statements | Sessions |
+| Emotional State (diagram) | Sessions |
 | Michael's 5-Day Machine Routine | Self-Care |
 | Your Two Days, and the Plan From Here | Sessions |
 | Steady the Base, Then Build | Sessions |

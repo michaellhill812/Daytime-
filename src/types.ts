@@ -66,6 +66,12 @@ export interface Doc {
   /** Body text for `note`, or a short description for the other kinds. */
   body?: string;
   url?: string;
+  /**
+   * Key of a diagram to render above the body — for source documents whose
+   * content is a drawing rather than text. Kept as a key, not markup, so the
+   * drawing lives in code and the data stays plain.
+   */
+  diagram?: string;
   /** Pinned docs sort to the front of the Wall. */
   pinned: boolean;
   updatedAt: string;
