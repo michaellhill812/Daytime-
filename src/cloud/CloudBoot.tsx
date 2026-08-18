@@ -8,6 +8,7 @@ import { DaytimeStore } from '../store/store';
 import { LocalStorageAdapter } from '../store/storage';
 import { createSeedState } from '../data/seed';
 import { SupabaseAdapter, ensureWorkspace, type SyncStatus } from './supabaseAdapter';
+import { explainSupabaseError } from './explainError';
 
 type Phase =
   | { kind: 'loading' }
@@ -67,7 +68,7 @@ export default function CloudBoot({ client }: { client: SupabaseClient }) {
         setPhase({ kind: 'ready', store, workspaceId });
       } catch (err) {
         if (!disposed) {
-          setPhase({ kind: 'error', message: err instanceof Error ? err.message : String(err) });
+          setPhase({ kind: 'error', message: explainSupabaseError(err) });
         }
       }
     })();
