@@ -23,9 +23,14 @@ async function loadPeople(client: SupabaseClient, workspaceId: string): Promise<
     const { data, error } = await client.rpc('workspace_people', { p_workspace: workspaceId });
     if (error || !Array.isArray(data)) return {};
 
+    // Every member goes in, named or not: this doubles as the roster the
+    // notes composer picks recipients from, and someone who signed in by
+    // email would otherwise be unaddressable. An empty value falls through
+    // to the name derived from the address.
     const directory: PeopleDirectory = {};
-    for (const row of data as { email?: string; name?: string | null }[]) {
-      if (row.email && row.name) directory[row.email.toLowerCase()] = row.name;
+    for (const row of data as { email?: string; name?: string | null; pending?: boolean }[]) {
+      if (!row.email || row.pending) continue;
+      directory[row.email.toLowerCase()] = row.name ?? '';
     }
     return directory;
   } catch {

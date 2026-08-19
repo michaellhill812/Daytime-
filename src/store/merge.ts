@@ -1,4 +1,4 @@
-import type { CalEvent, DayNote, DaytimeState, Doc, Domain, Goal, Task } from '../types';
+import type { CalEvent, DayNote, DaytimeState, Doc, Domain, Goal, Message, Task } from '../types';
 
 /**
  * Three-way merge of two Daytime documents against the last revision both sides
@@ -95,5 +95,11 @@ export function mergeStates(
     docs: mergeCollection<Doc>(base.docs, local.docs, remote.docs, byId),
     events: mergeCollection<CalEvent>(base.events, local.events, remote.events, byId),
     dayNotes: mergeCollection<DayNote>(base.dayNotes, local.dayNotes, remote.dayNotes, byDate),
+    messages: mergeCollection<Message>(
+      base.messages ?? [],
+      local.messages ?? [],
+      remote.messages ?? [],
+      byId,
+    ),
   };
 }

@@ -1,4 +1,14 @@
-import type { Authored, CalEvent, DaytimeState, Doc, Domain, Goal, Priority, Task } from '../types';
+import type {
+  Authored,
+  CalEvent,
+  DaytimeState,
+  Doc,
+  Domain,
+  Goal,
+  Message,
+  Priority,
+  Task,
+} from '../types';
 import { endOfDay, isSameDay, startOfDay, toDateKey } from '../lib/date';
 
 /**
@@ -479,6 +489,54 @@ export function recentChanges(
   for (const t of state.tasks) take('task', t.id, t.title, t);
 
   return entries.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 50);
+}
+
+// ---------------------------------------------------------------- messages --
+
+/** Is this message meant for `me`? An empty `to` is addressed to everyone. */
+export function addressedTo(message: Message, me: string): boolean {
+  if (message.to.length === 0) return true;
+  return message.to.some((email) => email.toLowerCase() === me.toLowerCase());
+}
+
+/**
+ * The conversation as this person sees it: everything they sent, plus
+ * everything sent to them. Messages between two other people stay out of it —
+ * they are in the document, but showing them would make a mess of a feature
+ * whose whole point is knowing what was meant for you.
+ */
+export function messagesFor(state: DaytimeState, me: string | null): Message[] {
+  const all = state.messages ?? [];
+  if (!me) return [];
+
+  return all
+    .filter((m) => m.from.toLowerCase() === me.toLowerCase() || addressedTo(m, me))
+    .sort((a, b) => a.at.localeCompare(b.at));
+}
+
+/** Messages waiting on this person — not their own, not already opened. */
+export function unreadMessages(state: DaytimeState, me: string | null): Message[] {
+  if (!me) return [];
+  return (state.messages ?? []).filter(
+    (m) =>
+      m.from.toLowerCase() !== me.toLowerCase() &&
+      addressedTo(m, me) &&
+      !m.readBy.some((email) => email.toLowerCase() === me.toLowerCase()),
+  );
+}
+
+/** How a message's audience reads in the list: "Everyone", or the names. */
+export function audienceLabel(
+  message: Message,
+  names: PeopleDirectory | undefined,
+  me: string | null,
+): string {
+  if (message.to.length === 0) return 'Everyone';
+  return message.to
+    .map((email) =>
+      me && email.toLowerCase() === me.toLowerCase() ? 'you' : displayName(email, names),
+    )
+    .join(', ');
 }
 
 // ------------------------------------------------------------------ search --

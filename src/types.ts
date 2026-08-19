@@ -117,6 +117,27 @@ export interface CalEvent extends Authored {
   recurrence?: Recurrence;
 }
 
+/**
+ * A note passed between people in the workspace.
+ *
+ * Addressed, not private. The whole workspace is one shared document, so a
+ * message named for one person is still carried in everyone's copy — `to`
+ * says who it is *for*, and the app shows it only to them, but it is not
+ * hidden from anyone determined to look. Real privacy would need messages in
+ * their own table with their own row-level rules.
+ */
+export interface Message {
+  id: string;
+  body: string;
+  /** Sender's email — the same identifier authorship uses. */
+  from: string;
+  /** Recipients' emails. Empty means everyone in the workspace. */
+  to: string[];
+  at: string;
+  /** Emails that have opened it, so a read on one device is read on all. */
+  readBy: string[];
+}
+
 /** One free-text note per calendar day: what actually happened. */
 export interface DayNote {
   /** YYYY-MM-DD */
@@ -132,6 +153,12 @@ export interface DaytimeState {
   docs: Doc[];
   events: CalEvent[];
   dayNotes: DayNote[];
+  /**
+   * Optional in the type because documents written before messaging existed
+   * don't carry it. `withDefaults` fills it in on load, so everything past
+   * the storage layer can treat it as present.
+   */
+  messages?: Message[];
 }
 
 export type ViewId = 'wheel' | 'wall' | 'world';

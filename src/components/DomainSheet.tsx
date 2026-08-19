@@ -117,22 +117,31 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
           {PRIORITY_LABEL[priority]}
         </button>
         {/* A date puts the task on the calendar; leaving it blank keeps it a
-            someday item that still counts on the Wheel. */}
-        <input
-          className="field field--date"
-          type="date"
-          value={dueDate}
-          aria-label="Due date"
-          onChange={(e) => setDueDate(e.target.value)}
-        />
-        <input
-          className="field field--time"
-          type="time"
-          value={dueTime}
-          aria-label="Due time"
-          disabled={!dueDate}
-          onChange={(e) => setDueTime(e.target.value)}
-        />
+            someday item that still counts on the Wheel.
+
+            Captioned because a date input cannot carry a placeholder — the
+            attribute is ignored on this type. Empty, the browser shows only
+            its own format hint ("mm/dd/yyyy", "--:--"), which says how to
+            type but never what the field is for. */}
+        <label className="capped">
+          <span className="capped__cap">Date</span>
+          <input
+            className="field field--date"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </label>
+        <label className="capped">
+          <span className="capped__cap">Time</span>
+          <input
+            className="field field--time"
+            type="time"
+            value={dueTime}
+            disabled={!dueDate}
+            onChange={(e) => setDueTime(e.target.value)}
+          />
+        </label>
         <button
           type="button"
           className="pill"

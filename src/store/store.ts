@@ -1,4 +1,4 @@
-import type { CalEvent, DaytimeState, Doc, Domain, Goal, Priority, Task } from '../types';
+import type { CalEvent, DaytimeState, Doc, Domain, Goal, Message, Priority, Task } from '../types';
 import type { PeopleDirectory } from './selectors';
 import type { StorageAdapter } from './storage';
 import { uid } from '../lib/id';
@@ -253,6 +253,52 @@ export class DaytimeStore {
       tasks: this.state.tasks.map((t) =>
         t.eventIds.includes(id) ? { ...t, eventIds: t.eventIds.filter((x) => x !== id) } : t,
       ),
+    });
+  };
+
+  // ------------------------------------------------------------- messages --
+
+  /** `to` empty means everyone. Sending is a no-op without a signed-in actor. */
+  sendMessage = (body: string, to: string[]): Message | null => {
+    const text = body.trim();
+    if (!text || !this.actor) return null;
+
+    const message: Message = {
+      id: uid('msg'),
+      body: text,
+      from: this.actor,
+      // Never address yourself: a message you sent is already read by you, and
+      // counting it would leave the badge permanently lit.
+      to: to.filter((email) => email.toLowerCase() !== this.actor?.toLowerCase()),
+      at: new Date().toISOString(),
+      readBy: [this.actor],
+    };
+    this.commit({ ...this.state, messages: [...(this.state.messages ?? []), message] });
+    return message;
+  };
+
+  /**
+   * Mark everything currently addressed to this person as read. Stored on the
+   * message rather than on the device, so reading on a phone clears the badge
+   * on a laptop too.
+   */
+  markMessagesRead = (ids: string[]): void => {
+    const me = this.actor;
+    if (!me || ids.length === 0) return;
+
+    const wanted = new Set(ids);
+    this.commit({
+      ...this.state,
+      messages: (this.state.messages ?? []).map((m) =>
+        wanted.has(m.id) && !m.readBy.includes(me) ? { ...m, readBy: [...m.readBy, me] } : m,
+      ),
+    });
+  };
+
+  removeMessage = (id: string): void => {
+    this.commit({
+      ...this.state,
+      messages: (this.state.messages ?? []).filter((m) => m.id !== id),
     });
   };
 

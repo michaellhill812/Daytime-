@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { DaytimeState } from '../types';
-import type { StorageAdapter } from '../store/storage';
+import { withDefaults, type StorageAdapter } from '../store/storage';
 import { mergeStates } from '../store/merge';
 import { cloudCredentials } from './config';
 
@@ -65,7 +65,7 @@ export class SupabaseAdapter implements StorageAdapter {
     }
 
     this.version = Number(data.version);
-    this.base = data.state as DaytimeState;
+    this.base = withDefaults(data.state as DaytimeState);
     return this.base;
   }
 
@@ -145,9 +145,12 @@ export class SupabaseAdapter implements StorageAdapter {
           // Our own write echoes back at the version we already hold.
           if (Number(next.version) === this.version) return;
 
+          // A peer still running an older build can write a document without
+          // the newer fields; default them here too, not just on first load.
+          const incoming = withDefaults(next.state);
           this.version = Number(next.version);
-          this.base = next.state;
-          onRemote(next.state);
+          this.base = incoming;
+          onRemote(incoming);
         },
       )
       .subscribe();

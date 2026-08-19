@@ -11,6 +11,19 @@ import type { DaytimeState } from '../types';
 export const SCHEMA_VERSION = 6;
 
 /**
+ * Fill in anything a stored document predates.
+ *
+ * Deliberately not a version bump: a mismatch discards the saved state and
+ * re-seeds, which for a live shared workspace means throwing away real work.
+ * An additive field with a default costs nothing and loses nothing, so every
+ * adapter runs its loaded document through here rather than raising the
+ * version and orphaning what people already have.
+ */
+export function withDefaults(state: DaytimeState): DaytimeState {
+  return state.messages ? state : { ...state, messages: [] };
+}
+
+/**
  * Everything the app needs from persistence. The interface is async so a
  * networked/synced adapter can replace the local one later without touching a
  * single view — the store awaits hydration before the first render either way.
@@ -44,7 +57,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     try {
       const parsed = JSON.parse(raw) as DaytimeState;
       if (parsed?.version !== SCHEMA_VERSION) return null;
-      return parsed;
+      return withDefaults(parsed);
     } catch {
       return null;
     }

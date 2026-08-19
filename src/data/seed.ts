@@ -145,6 +145,7 @@ export function createSeedState(now: Date = new Date()): DaytimeState {
       block('Prep for bed / nighttime hygiene', 'dom-routine', [21, 30]),
     ],
     dayNotes: [],
+    messages: [],
 
     docs: [
       {

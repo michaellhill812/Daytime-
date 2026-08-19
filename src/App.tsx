@@ -4,6 +4,7 @@ import WallView from './views/WallView';
 import WorldView from './views/WorldView';
 import ViewRail from './components/ViewRail';
 import UpdatesBell from './components/UpdatesBell';
+import Messages from './components/Messages';
 import { PeekProvider } from './components/PeekProvider';
 import type { ViewId } from './types';
 
@@ -58,6 +59,7 @@ export default function App() {
         {/* Inside the provider: opening an item from the feed uses the same
             peek sheets every other view does. */}
         <UpdatesBell />
+        <Messages />
       </PeekProvider>
 
       <ViewRail current={current} onNavigate={goTo} />

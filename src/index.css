@@ -940,6 +940,27 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+/* A field that names itself above the control, for inputs that can't hold a
+   placeholder of their own. */
+.capped {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: none;
+}
+
+.capped__cap {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding-left: 2px;
+}
+
+.capped:focus-within .capped__cap {
+  color: var(--dim);
+}
+
 /* The day is what you scan for; the time is detail underneath it. */
 .when__clock {
   color: var(--dim);
@@ -1141,11 +1162,13 @@ button {
   color: var(--dim);
 }
 
+/* Bottoms line up rather than centres: captioned fields are taller than the
+   pills beside them, and centring would float the buttons mid-field. */
 .quick-add {
   display: flex;
   gap: 7px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   margin: 4px 0 2px;
 }
 
@@ -1633,6 +1656,119 @@ button {
   font-weight: 700;
   line-height: 15px;
   font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ notes -- */
+
+/* Sits left of the bell, which sits left of the account button. Two different
+   kinds of waiting: the bell is what changed, this is what was said to you. */
+.bubble {
+  position: fixed;
+  top: calc(var(--safe-top) + 14px);
+  right: 102px;
+  z-index: 40;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  transition: all 240ms var(--ease);
+}
+
+.bubble:hover {
+  color: var(--text);
+}
+
+.bubble--live {
+  color: var(--text);
+  border-color: rgba(10, 132, 255, 0.55);
+}
+
+/* Blue rather than the bell's amber: a note is addressed to you, not overdue. */
+.bubble__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: #0a84ff;
+  color: #f4f5f7;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.msg {
+  max-width: 86%;
+  align-self: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  padding: 9px 12px;
+}
+
+/* Your own notes lean the other way, the way every messaging app does it. */
+.msg--mine {
+  align-self: flex-end;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 4px;
+  background: rgba(10, 132, 255, 0.14);
+  border-color: rgba(10, 132, 255, 0.3);
+}
+
+.msg__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-bottom: 4px;
+}
+
+.msg__to {
+  color: var(--dim);
+}
+
+.msg__at {
+  font-variant-numeric: tabular-nums;
+}
+
+.msg__body {
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.msg__del {
+  margin-top: 5px;
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.msg__del:hover {
+  color: var(--alert);
+}
+
+/* A chip you choose, rather than one that just links somewhere. */
+.chip--pick.is-on {
+  color: var(--text);
+  border-color: rgba(10, 132, 255, 0.55);
+  background: rgba(10, 132, 255, 0.16);
 }
 
 /* In the feed the credit is the point, so it gets room rather than being
