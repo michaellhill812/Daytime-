@@ -4,6 +4,8 @@ import Sheet from '../components/Sheet';
 
 interface Person {
   email: string;
+  /** From the account behind the address — null for an email sign-in or a pending invite. */
+  name: string | null;
   role: string;
   pending: boolean;
 }
@@ -67,7 +69,10 @@ export default function WorkspaceSheet({
         <div className="list">
           {people.map((p) => (
             <div key={p.email} className="person">
-              <span className="person__email">{p.email}</span>
+              {/* The address stays visible even when a name is known: it is
+                  what an invitation has to match, so hiding it would make a
+                  mistyped invite impossible to spot. */}
+              <span className="person__email">{p.name ? `${p.name} · ${p.email}` : p.email}</span>
               <span className="person__role">{p.pending ? 'invited' : p.role}</span>
             </div>
           ))}

@@ -266,20 +266,35 @@ end;
 $$;
 
 -- Who is in this workspace, for the members list in the app.
-create or replace function public.workspace_people(p_workspace uuid)
-returns table (email text, role text, pending boolean)
+-- Dropped rather than replaced: this gained a column, and Postgres refuses to
+-- change a function's return type in place. Dropping first keeps the file
+-- re-runnable against a project that still has the older two-column version.
+drop function if exists public.workspace_people(uuid);
+
+create function public.workspace_people(p_workspace uuid)
+returns table (email text, name text, role text, pending boolean)
 language sql
 stable
 security definer
 set search_path = public
 as $$
-  select u.email::text, m.role, false
+  -- An OAuth provider hands us the person's actual name; Google puts it under
+  -- full_name, some others only under name. Null when they signed in by email,
+  -- which the app falls back from rather than showing an empty label.
+  select
+    u.email::text,
+    coalesce(
+      u.raw_user_meta_data ->> 'full_name',
+      u.raw_user_meta_data ->> 'name'
+    )::text,
+    m.role,
+    false
   from public.workspace_members m
   join auth.users u on u.id = m.user_id
   where m.workspace_id = p_workspace
     and public.is_workspace_member(p_workspace)
   union all
-  select i.email, i.role, true
+  select i.email, null::text, i.role, true
   from public.workspace_invites i
   where i.workspace_id = p_workspace
     and public.is_workspace_member(p_workspace);

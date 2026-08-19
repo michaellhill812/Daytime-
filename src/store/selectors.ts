@@ -417,10 +417,34 @@ export function personName(email: string): string {
  * name on your own work is noise; the whole point is spotting the other
  * person's.
  */
-export function creditFor(item: Authored, me: string | null): string | null {
+export function creditFor(
+  item: Authored,
+  me: string | null,
+  names?: PeopleDirectory,
+): string | null {
   if (!item.createdBy) return null;
   if (me && item.createdBy.toLowerCase() === me.toLowerCase()) return null;
-  return personName(item.createdBy);
+  return displayName(item.createdBy, names);
+}
+
+/**
+ * Email address to the name to show for it.
+ *
+ * Authorship is stored as an email because that is the one identifier that
+ * doesn't change under you — someone editing their Google profile shouldn't
+ * orphan every item they ever added. Names are resolved here at read time
+ * instead, so they can improve without rewriting a single stored record.
+ */
+export type PeopleDirectory = Record<string, string>;
+
+/**
+ * What to call someone. A name from their account when we have one, otherwise
+ * the best guess the address supports — "leila.hill@" reads as Leila Hill, but
+ * "leilavhill@" can only ever come back as Leilavhill, which is exactly why
+ * the directory is worth having.
+ */
+export function displayName(email: string, names?: PeopleDirectory): string {
+  return names?.[email.toLowerCase()]?.trim() || personName(email);
 }
 
 export interface ChangeEntry {
@@ -437,11 +461,15 @@ export interface ChangeEntry {
  * additions would never be empty, and an indicator that is never clear stops
  * meaning anything.
  */
-export function recentChanges(state: DaytimeState, me: string | null): ChangeEntry[] {
+export function recentChanges(
+  state: DaytimeState,
+  me: string | null,
+  names?: PeopleDirectory,
+): ChangeEntry[] {
   const entries: ChangeEntry[] = [];
 
   const take = (kind: ChangeEntry['kind'], id: string, title: string, item: Authored) => {
-    const by = creditFor(item, me);
+    const by = creditFor(item, me, names);
     const at = item.createdAt;
     if (by && at) entries.push({ id, kind, title, by, at });
   };

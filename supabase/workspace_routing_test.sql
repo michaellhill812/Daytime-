@@ -1,4 +1,4 @@
--- Which workspace does an account boot into?
+-- Which workspace does an account boot into, and who gets credited for a change?
 --
 -- Signing in creates a workspace for anyone who has none, so the order of
 -- "signs in" and "gets invited" decides whether two people end up sharing a
@@ -12,7 +12,12 @@
 
 -- Stub the pieces of Supabase the schema leans on.
 create schema if not exists auth;
-create table if not exists auth.users (id uuid primary key, email text);
+create table if not exists auth.users (
+  id uuid primary key,
+  email text,
+  -- Where Supabase keeps whatever the OAuth provider told it about the person.
+  raw_user_meta_data jsonb
+);
 
 create or replace function auth.uid() returns uuid
 language sql stable as $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
@@ -129,3 +134,20 @@ select case when :'o_final' = :'owner_ws'
 select case when exists (select 1 from public.workspaces where id = :'guest_solo')
   then 'PASS  the abandoned solo workspace is left intact, not destroyed'
   else 'FAIL  sign-in deleted a workspace' end as result;
+
+-- workspace_people must carry a display name when the account has one.
+update auth.users
+set raw_user_meta_data = '{"full_name":"Leila Hill","name":"Leila Hill"}'::jsonb
+where email = 'guest@example.com';
+
+set test.uid = '11111111-1111-1111-1111-111111111111';
+select case when (select name from public.workspace_people(:'owner_ws'::uuid)
+                  where email = 'guest@example.com') = 'Leila Hill'
+  then 'PASS  workspace_people returns the account name'
+  else 'FAIL  no name came back' end as result;
+
+-- An email-only account has no metadata; that must be null, not an error.
+select case when (select name from public.workspace_people(:'owner_ws'::uuid)
+                  where email = 'owner@example.com') is null
+  then 'PASS  an account with no name reports null'
+  else 'FAIL  invented a name' end as result;

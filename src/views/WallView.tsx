@@ -129,7 +129,7 @@ function WallCard({ doc, onOpen }: { doc: Doc; onOpen: () => void }) {
   const store = useStore();
   const domain = domainById(state, doc.domainId);
   const refs = tasksForDoc(state, doc.id);
-  const credit = creditFor(doc, store.actor);
+  const credit = creditFor(doc, store.actor, store.people);
 
   // A <div> rather than a <button>: Chrome doesn't report a button's flex content
   // height to the grid, so tall cards spilled past their own border.

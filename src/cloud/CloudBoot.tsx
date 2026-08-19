@@ -9,6 +9,29 @@ import { LocalStorageAdapter } from '../store/storage';
 import { createSeedState } from '../data/seed';
 import { SupabaseAdapter, ensureWorkspace, type SyncStatus } from './supabaseAdapter';
 import { explainSupabaseError } from './explainError';
+import type { PeopleDirectory } from '../store/selectors';
+
+/**
+ * Everyone's display name, keyed by the email their work is filed under.
+ *
+ * Best-effort on purpose: a workspace that can't answer just falls back to
+ * names derived from the addresses, which is what the app did before this
+ * existed. Failing to boot over a cosmetic label would be a poor trade.
+ */
+async function loadPeople(client: SupabaseClient, workspaceId: string): Promise<PeopleDirectory> {
+  try {
+    const { data, error } = await client.rpc('workspace_people', { p_workspace: workspaceId });
+    if (error || !Array.isArray(data)) return {};
+
+    const directory: PeopleDirectory = {};
+    for (const row of data as { email?: string; name?: string | null }[]) {
+      if (row.email && row.name) directory[row.email.toLowerCase()] = row.name;
+    }
+    return directory;
+  } catch {
+    return {};
+  }
+}
 
 type Phase =
   | { kind: 'loading' }
@@ -67,6 +90,7 @@ export default function CloudBoot({ client }: { client: SupabaseClient }) {
         // Set before anything can be created, so nothing is ever written
         // without an author in a workspace that has one.
         store.actor = session.user.email ?? null;
+        store.people = await loadPeople(client, workspaceId);
         disconnect = store.connect();
         setPhase({ kind: 'ready', store, workspaceId });
       } catch (err) {

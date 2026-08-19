@@ -49,7 +49,10 @@ export default function UpdatesBell() {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(readSeen);
 
-  const changes = useMemo(() => recentChanges(state, store.actor), [state, store.actor]);
+  const changes = useMemo(
+    () => recentChanges(state, store.actor, store.people),
+    [state, store.actor, store.people],
+  );
   const unseen = changes.filter((c) => c.at > seen);
 
   // Nothing to report and nothing to remember: in a workspace of one there is

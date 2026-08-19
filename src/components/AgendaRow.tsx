@@ -19,7 +19,7 @@ export default function AgendaRow({ item }: { item: AgendaItem }) {
   const domain = domainById(state, item.domainId);
   const accent = domain?.accent ?? 'rgba(255,255,255,0.3)';
   const isTask = item.kind === 'task';
-  const credit = creditFor(item.task ?? item.event ?? {}, store.actor);
+  const credit = creditFor(item.task ?? item.event ?? {}, store.actor, store.people);
 
   const when = item.at
     ? item.end

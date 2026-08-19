@@ -1,4 +1,5 @@
 import type { CalEvent, DaytimeState, Doc, Domain, Goal, Priority, Task } from '../types';
+import type { PeopleDirectory } from './selectors';
 import type { StorageAdapter } from './storage';
 import { uid } from '../lib/id';
 import { toDateKey } from '../lib/date';
@@ -22,6 +23,14 @@ export class DaytimeStore {
    * the workspace, and writing it into state would send it to everyone.
    */
   actor: string | null = null;
+
+  /**
+   * Email to display name for everyone in this workspace, filled in at boot.
+   * Not part of the document: it belongs to the accounts, not to the data, and
+   * writing it into shared state would mean one person renaming themselves
+   * edited everyone else's copy.
+   */
+  people: PeopleDirectory = {};
 
   constructor(
     initial: DaytimeState,

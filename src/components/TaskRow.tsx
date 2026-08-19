@@ -38,7 +38,7 @@ export default function TaskRow({
   const domain = domainById(state, task.domainId);
   const docs = docsForTask(state, task);
   const events = eventsForTask(state, task);
-  const credit = creditFor(task, store.actor);
+  const credit = creditFor(task, store.actor, store.people);
   const overdue = !task.done && !!task.due && new Date(task.due).getTime() < now.getTime();
 
   return (
