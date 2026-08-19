@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-type Phase = 'email' | 'sending' | 'code' | 'verifying';
+type Phase = 'email' | 'sending' | 'code' | 'verifying' | 'google';
 
 /**
  * How long the emailed code is, is a property of the Supabase project — its
@@ -47,17 +47,20 @@ function readAndClearLinkError(): string | null {
 }
 
 /**
- * Email OTP sign-in — a 6-digit code typed back into the same tab, not a link
- * to tap.
+ * Two ways in: Google, or a code typed back into the same tab.
  *
- * A tappable link was the first version of this and it failed hard on mobile:
- * mail apps and their security scanners (Outlook's Safe Links chief among
- * them) routinely pre-visit links in incoming mail to check them for malware
- * before a human ever taps one. Supabase's confirmation link is single-use, so
- * that automated visit burns the token — the human's tap then hits an
- * already-spent link and silently bounces back to sign-in with no error to
- * explain why. A typed code has nothing to pre-fetch, so there's nothing for a
- * scanner to consume.
+ * Google is offered first because it sends no mail at all, which sidesteps
+ * every way email can fail here — a sender that can only reach its own account
+ * holder, a per-hour rate limit, a spam folder. For a second person on a
+ * project with no domain of its own, it is usually the only thing that works.
+ *
+ * The email path deliberately has no tappable link. That was the first version
+ * and it failed hard on mobile: mail apps and their security scanners
+ * (Outlook's Safe Links chief among them) routinely pre-visit links in incoming
+ * mail to check them for malware before a human ever taps one. Supabase's
+ * confirmation link is single-use, so that automated visit burns the token —
+ * the human's tap then hits an already-spent link and bounces back to sign-in
+ * with no error to explain why. A typed code has nothing to pre-fetch.
  */
 export default function SignIn({ client }: { client: SupabaseClient }) {
   const [email, setEmail] = useState('');
@@ -68,11 +71,44 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
 
   useEffect(() => {
     const found = readAndClearLinkError();
-    if (found) {
-      const sentence = /[.!?]$/.test(found) ? found : `${found}.`;
-      setError(`${sentence} Use the 6-digit code from the email instead of the link.`);
-    }
+    if (!found) return;
+
+    const sentence = /[.!?]$/.test(found) ? found : `${found}.`;
+    // A failure coming back from Google is about the provider, not about a
+    // stale emailed link — telling someone to type a code they never
+    // requested is worse than saying nothing.
+    const aboutALink = /link|otp|token|expired/i.test(found);
+    setError(
+      aboutALink
+        ? `${sentence} Type the code from the email instead of tapping the link.`
+        : sentence,
+    );
   }, []);
+
+  const signInWithGoogle = async () => {
+    setError('');
+    setPhase('google');
+
+    const { error: oauthError } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      // Back to whichever deployment this is. Supabase only honours it when it
+      // matches the project's redirect allow-list, so a preview URL that isn't
+      // listed lands on the production site rather than here.
+      options: { redirectTo: window.location.origin },
+    });
+
+    if (oauthError) {
+      setPhase('email');
+      setError(
+        /not enabled|unsupported provider/i.test(oauthError.message)
+          ? 'Google sign-in isn’t switched on for this project yet — enable it under Authentication → Sign In / Providers in Supabase.'
+          : oauthError.message,
+      );
+      return;
+    }
+    // On success the browser is already navigating to Google; the session
+    // arrives back in the URL and CloudBoot picks it up.
+  };
 
   const sendCode = async () => {
     const address = email.trim();
@@ -180,6 +216,38 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
         ) : (
           <>
             <p className="gate__text">Sign in to sync across your devices.</p>
+
+            <button
+              type="button"
+              className="btn btn--google"
+              onClick={() => void signInWithGoogle()}
+              disabled={phase === 'google'}
+            >
+              <svg viewBox="0 0 48 48" width="17" height="17" aria-hidden>
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+              </svg>
+              {phase === 'google' ? 'Opening Google…' : 'Continue with Google'}
+            </button>
+
+            <div className="gate__or">
+              <span>or</span>
+            </div>
+
             <div className="gate__row">
               <input
                 className="field"

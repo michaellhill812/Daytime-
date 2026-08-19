@@ -1501,6 +1501,46 @@ button {
   gap: 8px;
 }
 
+/* Google's mark is fixed in colour, so this button is the one light surface in
+   a dark app — using their brand on a dark chip is what makes it look forged. */
+.btn--google {
+  width: 100%;
+  justify-content: center;
+  gap: 9px;
+  display: flex;
+  align-items: center;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f1f1f;
+  background: #fff;
+  border-color: transparent;
+}
+
+.btn--google:hover:not(:disabled) {
+  color: #1f1f1f;
+  background: #ececec;
+}
+
+.gate__or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  color: var(--faint);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gate__or::before,
+.gate__or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
 .gate__error {
   margin: 12px 0 0;
   font-size: 12.5px;

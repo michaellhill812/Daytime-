@@ -153,9 +153,31 @@ Why it matters: the app asks Supabase to send you back to whatever URL you signe
 
 **Use the production URL, not Vercel's Preview button.** Preview URLs change per deployment, and on some plans sit behind Vercel's Deployment Protection wall.
 
+### Optional — Google sign-in
+
+The app offers **Continue with Google** above the email box. It's optional, but it is the one route that sends no mail at all, so no sender restriction, rate limit, or spam filter can touch it — which makes it the simplest way to get a second person in without owning a domain. It has to come after Step 6, because it needs the deployed URL.
+
+**In Google Cloud** ([console.cloud.google.com](https://console.cloud.google.com)), free:
+
+1. Create a project, then **APIs & Services → OAuth consent screen**. Choose **External**, fill in an app name and your email, and save. Leave it in Testing mode and add both sign-in addresses under **Test users** — a Testing app is capped at 100 users and needs no review, which is ample here. (Publishing it would ask for verification you don't need.)
+2. **APIs & Services → Credentials → Create Credentials → OAuth client ID → Web application.**
+3. Under **Authorised redirect URIs** add exactly one entry — your Supabase callback, not the Vercel URL:
+
+   ```
+   https://<project-ref>.supabase.co/auth/v1/callback
+   ```
+
+4. Copy the **Client ID** and **Client secret**.
+
+**In Supabase**, go to **Authentication → Sign In / Providers → Google**, enable it, paste both values, and save.
+
+That's it — the button starts working on the next sign-in, no redeploy needed, because the app already ships it.
+
+The redirect URI trips people up: Google sends the user back to *Supabase*, and Supabase then forwards them to the app. Putting the Vercel URL in Google's list instead produces a `redirect_uri_mismatch` at the Google screen. If the app says Google sign-in isn't switched on, the provider toggle in Supabase is off or the credentials didn't save.
+
 ## Step 7 — First sign-in
 
-1. Open the production URL. You'll get a sign-in screen.
+1. Open the production URL. You'll get a sign-in screen. If you set up Google above, **Continue with Google** is the whole of it — tap it, pick your account, done. Otherwise:
 2. Enter your email and tap **Send code**.
 3. Open the email, read the 6-digit code, type it back into the same tab, tap **Verify**. A mistyped digit costs nothing — the code stays live, so you can correct it without requesting another mail.
 4. The app opens and creates your workspace automatically.
@@ -163,7 +185,7 @@ Why it matters: the app asks Supabase to send you back to whatever URL you signe
 
 Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first — but his code can only *reach* him once the sender can send to somebody other than you, which is what "Sending to a second person" in Step 3 is about. The invitation itself lives in the database and keeps waiting regardless, so inviting him early costs nothing.
 
-If email turns out to be more trouble than it's worth, **Authentication → Sign In / Providers** also carries Google. An OAuth sign-in sends no mail at all, so no sender restriction or rate limit applies to it — the trade is a Google Cloud OAuth client on your side and a sign-in button in the app on ours.
+**If Google sign-in is on, none of that applies to him.** He taps **Continue with Google** and is in — no mail is sent, so nothing can be restricted, rate-limited, or filtered. The invitation is matched on the email address of whichever Google account he uses, so invite the address he'd sign in with. (Remember to add him under **Test users** in the Google consent screen while the app is in Testing mode, or Google will refuse him.)
 
 Note: on first cloud sign-in, whatever is already in that browser's local storage becomes the starting document rather than being wiped. Sign in first from the browser whose data you want to keep.
 
@@ -206,6 +228,12 @@ One thing to know: **Supabase pauses free projects after a week of inactivity.**
 The app translates the common database failures into plain sentences rather than error codes, so start by reading what the screen says. These four are the ones actually hit during setup:
 
 **The email has a link but no code** — the Magic Link template was never changed, so it is still Supabase's stock link-only mail. Step 3, the template section. Nothing in the app can work around this: if `{{ .Token }}` isn't in the template, the code isn't in the message.
+
+**Google says `redirect_uri_mismatch`** — the authorised redirect URI in Google Cloud has to be the *Supabase* callback, `https://<project-ref>.supabase.co/auth/v1/callback`, not the Vercel URL. Google returns the user to Supabase, which then forwards them to the app.
+
+**"Google sign-in isn't switched on for this project yet"** — the provider toggle under **Authentication → Sign In / Providers → Google** is off, or the client ID and secret didn't save.
+
+**Google refuses a second person with "app is being tested"** — the OAuth consent screen is in Testing mode, which only admits addresses listed under **Test users**. Add theirs there. The 100-user cap is the trade for skipping Google's verification review.
 
 **The code is longer or shorter than you expect** — fine, the app takes anything from 6 to 10 digits, which is the range Supabase allows. The length is **Authentication → Sign In / Providers → Email → Email OTP Length** if you want to change it; nothing in the app needs to match it.
 
