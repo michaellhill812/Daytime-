@@ -5,6 +5,14 @@ import WorldView from './views/WorldView';
 import ViewRail from './components/ViewRail';
 import UpdatesBell from './components/UpdatesBell';
 import Messages from './components/Messages';
+
+/**
+ * The field guide — what the three views are for, and how to put the app on a
+ * phone. Published separately rather than built in: it explains the app from
+ * outside it, and someone who cannot get signed in still needs to be able to
+ * read it.
+ */
+const GUIDE_URL = 'https://claude.ai/code/artifact/d645ba04-afed-4048-b451-7d62c864d52d';
 import { PeekProvider } from './components/PeekProvider';
 import type { ViewId } from './types';
 
@@ -57,9 +65,35 @@ export default function App() {
         <WorldView open={worldOpen} onClose={() => setWorldOpen(false)} />
 
         {/* Inside the provider: opening an item from the feed uses the same
-            peek sheets every other view does. */}
-        <UpdatesBell />
-        <Messages />
+            peek sheets every other view does.
+
+            Order is left-to-right, so the bell ends up nearest the account
+            button and the guide sits furthest out — the one that never
+            changes is the one you never need to find in a hurry. */}
+        <div className="hud">
+          <a
+            className="info"
+            href={GUIDE_URL}
+            target="_blank"
+            rel="noreferrer"
+            title="How Daytime works"
+            aria-label="How Daytime works"
+          >
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" fill="none" />
+              <circle cx="12" cy="7.6" r="1.15" fill="currentColor" />
+              <path
+                d="M12 10.8v6"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
+          </a>
+          <Messages />
+          <UpdatesBell />
+        </div>
       </PeekProvider>
 
       <ViewRail current={current} onNavigate={goTo} />

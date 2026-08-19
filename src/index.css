@@ -1616,11 +1616,25 @@ button {
 /* The account chip doubles as the sync light: it dims while a write is in
    flight and turns red if one failed, so an unsaved edit is never invisible. */
 /* Sits immediately left of the account button, which owns the corner. */
-.bell {
+/* One row rather than three fixed offsets. The bell and the notes bubble both
+   come and go — no unread changes, a workspace of one — and hardcoded
+   positions left a hole where a hidden button used to be. A flex row anchored
+   to the right of the account button closes up on its own. */
+.hud {
   position: fixed;
   top: calc(var(--safe-top) + 14px);
   right: 58px;
   z-index: 40;
+  display: flex;
+  gap: 10px;
+}
+
+/* `relative` matters: the count badges are absolutely positioned, and these
+   buttons are what they must be positioned against. */
+.bell,
+.bubble,
+.info {
+  position: relative;
   width: 34px;
   height: 34px;
   display: grid;
@@ -1631,6 +1645,10 @@ button {
   border: 1px solid var(--line);
   backdrop-filter: blur(14px);
   transition: all 240ms var(--ease);
+}
+
+.info:hover {
+  color: var(--text);
 }
 
 .bell:hover {
@@ -1660,25 +1678,8 @@ button {
 
 /* ------------------------------------------------------------------ notes -- */
 
-/* Sits left of the bell, which sits left of the account button. Two different
-   kinds of waiting: the bell is what changed, this is what was said to you. */
-.bubble {
-  position: fixed;
-  top: calc(var(--safe-top) + 14px);
-  right: 102px;
-  z-index: 40;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--dim);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  transition: all 240ms var(--ease);
-}
-
+/* Two different kinds of waiting: the bell is what changed, this is what was
+   said to you — which is why they are separate buttons and separate colors. */
 .bubble:hover {
   color: var(--text);
 }
