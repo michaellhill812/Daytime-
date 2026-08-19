@@ -60,14 +60,31 @@ That one file creates the tables, the security rules, the save function, and the
 
 **This step is required.** The app asks for a typed 6-digit code, but Supabase's stock email contains only a link — so without this change the mail arrives with no code in it and there is nothing to type.
 
-**Authentication** → **Emails** (older dashboards: **Email Templates**) → the **Magic Link** tab. Replace the whole body with:
+**Editing the template body requires custom SMTP first.** Supabase's built-in sender only lets you change the subject line; the body editor's **Source** view stays greyed out with "Set up custom SMTP to edit the source" until a custom sender is configured. There's no way around this on the built-in service — a real sender has to go in before the template can change at all.
 
-```html
-<h2>Your Daytime sign-in code</h2>
-<p>Enter this code in the app:</p>
-<p style="font-size: 28px; letter-spacing: 6px;"><strong>{{ .Token }}</strong></p>
-<p>If you didn't ask for this, ignore it.</p>
-```
+**[Resend](https://resend.com)** is the fastest way there: free tier, and it has a sandbox address (`onboarding@resend.dev`) that sends immediately with no domain to verify — right for a two-person project.
+
+1. Sign up at resend.com. **API Keys** → **Create API Key** → copy it.
+2. **Authentication** → **Emails** → **SMTP Settings** → turn on **Enable custom SMTP** and fill in:
+
+   | Field | Value |
+   |---|---|
+   | Sender email | `onboarding@resend.dev` |
+   | Sender name | `Daytime` |
+   | Host | `smtp.resend.com` |
+   | Port | `465` |
+   | Username | `resend` |
+   | Password | *(the API key)* |
+
+   Save.
+3. **Templates** → **Magic Link** → **Source** is now editable. Replace the whole body with:
+
+   ```html
+   <h2>Your Daytime sign-in code</h2>
+   <p>Enter this code in the app:</p>
+   <p style="font-size: 28px; letter-spacing: 6px;"><strong>{{ .Token }}</strong></p>
+   <p>If you didn't ask for this, ignore it.</p>
+   ```
 
 `{{ .Token }}` is the code. `{{ .ConfirmationURL }}` is the link — and it is deliberately gone.
 
@@ -75,7 +92,7 @@ Leaving the link in place is not merely untidy. That link **is** the credential:
 
 URL configuration comes later, in Step 6 — it needs the Vercel address, which does not exist yet. Doing it now is the mistake that sends the first sign-in mail pointing at `localhost:3000`.
 
-> Supabase's built-in sender is rate-limited to a handful of emails per hour and lands in spam easily on a new project. Fine for two people; check junk mail if the first one seems missing. If it starts throttling, plug in a real sender (Resend, Postmark) under Authentication → Emails.
+> Mail from `onboarding@resend.dev` is a shared sandbox address, so it lands in spam more readily than mail from your own domain — check junk mail on the first send. Resend's free tier (100/day, 3,000/month) is well past what two people signing in occasionally will use.
 
 ## Step 4 — Get your two values
 
@@ -160,6 +177,7 @@ Open the Vercel URL in Safari → Share → **Add to Home Screen**. It runs full
 |---|---|---|
 | Supabase | 500 MB database, 50k monthly users | Not in any realistic future for this |
 | Vercel | 100 GB bandwidth/month | Same |
+| Resend | 100 emails/day, 3,000/month | Same |
 
 Two people and a few hundred KB of notes. This stays free.
 
@@ -179,9 +197,9 @@ The app translates the common database failures into plain sentences rather than
 
 **Sign-in dead-ends at "site cannot be reached"** — an old link pointed at `localhost:3000`, because Supabase's Site URL was never aimed at the deployment. Step 6.
 
-**No sign-in email at all** — check spam first; Supabase's default sender is filtered aggressively on new projects. Then confirm **Authentication → Providers → Email** is enabled with signups allowed. **Authentication → Logs** shows what happened to each attempt and beats guessing.
+**No sign-in email at all** — check spam first; a sandbox sender address like `onboarding@resend.dev` is filtered more aggressively than mail from your own domain. Then confirm **Authentication → Providers → Email** is enabled with signups allowed, and that custom SMTP is still on with the right Resend API key. **Authentication → Logs** shows what happened to each attempt and beats guessing.
 
-**"Email rate limit exceeded"** — Supabase's built-in sender allows only a few messages an hour. It clears on its own; a wrong code doesn't consume one, so correct the digits rather than requesting a new mail.
+**"Email rate limit exceeded"** — Supabase keeps its own default cap on top of whatever Resend allows, and it can still bite briefly right after switching on custom SMTP. It clears on its own within a few minutes. A wrong code doesn't consume it, so correct the digits rather than requesting a new mail.
 
 **"The project ref … is 18 characters, but Supabase refs are 20"** — the URL lost a character in copying. Re-copy it from Settings → Data API with the copy button.
 
