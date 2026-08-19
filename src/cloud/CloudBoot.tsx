@@ -64,6 +64,9 @@ export default function CloudBoot({ client }: { client: SupabaseClient }) {
         if (disposed) return;
 
         const store = new DaytimeStore(state, adapter);
+        // Set before anything can be created, so nothing is ever written
+        // without an author in a workspace that has one.
+        store.actor = session.user.email ?? null;
         disconnect = store.connect();
         setPhase({ kind: 'ready', store, workspaceId });
       } catch (err) {

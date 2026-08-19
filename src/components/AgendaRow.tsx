@@ -1,6 +1,6 @@
 import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
-import { PRIORITY_COLOR, domainById, type AgendaItem } from '../store/selectors';
+import { PRIORITY_COLOR, creditFor, domainById, type AgendaItem } from '../store/selectors';
 import { formatTime } from '../lib/date';
 
 /**
@@ -25,6 +25,7 @@ export default function AgendaRow({
   const domain = domainById(state, item.domainId);
   const accent = domain?.accent ?? 'rgba(255,255,255,0.3)';
   const isTask = item.kind === 'task';
+  const credit = creditFor(item.task ?? item.event ?? {}, store.actor);
 
   const when = item.at
     ? item.end
@@ -78,6 +79,7 @@ export default function AgendaRow({
       </button>
 
       {item.event?.location && <span className="agenda__where">{item.event.location}</span>}
+      {credit && <span className="agenda__where">by {credit}</span>}
       {item.priority && !isTask && (
         <span
           className="event-row__priority"

@@ -1,4 +1,4 @@
-import type { CalEvent, DaytimeState, Doc, Domain, Goal, Priority, Task } from '../types';
+import type { Authored, CalEvent, DaytimeState, Doc, Domain, Goal, Priority, Task } from '../types';
 import { endOfDay, isSameDay, startOfDay, toDateKey } from '../lib/date';
 
 /**
@@ -391,6 +391,66 @@ export function dayAgenda(
 
 export function dayNote(state: DaytimeState, day: Date): string {
   return state.dayNotes.find((n) => n.date === toDateKey(day))?.body ?? '';
+}
+
+// ------------------------------------------------------------ attribution --
+
+/**
+ * A person's name as the app says it: the local part of their email, cased
+ * like a name. `andrew.smith@x.com` reads "Andrew Smith". Not a lookup against
+ * a member list, because attribution has to render on a document written by
+ * someone who has since left, and the email on it is the only thing that
+ * cannot go stale.
+ */
+export function personName(email: string): string {
+  const local = email.split('@')[0] ?? email;
+  return local
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+/**
+ * Who to credit on an item, or null when there is nobody worth naming — it was
+ * you, or it predates authorship, or you are the only person here. Your own
+ * name on your own work is noise; the whole point is spotting the other
+ * person's.
+ */
+export function creditFor(item: Authored, me: string | null): string | null {
+  if (!item.createdBy) return null;
+  if (me && item.createdBy.toLowerCase() === me.toLowerCase()) return null;
+  return personName(item.createdBy);
+}
+
+export interface ChangeEntry {
+  id: string;
+  kind: 'doc' | 'event' | 'task';
+  title: string;
+  by: string;
+  at: string;
+}
+
+/**
+ * What other people have added, newest first — the feed behind the bell.
+ * Only other people's work counts: a list that reminded you of your own
+ * additions would never be empty, and an indicator that is never clear stops
+ * meaning anything.
+ */
+export function recentChanges(state: DaytimeState, me: string | null): ChangeEntry[] {
+  const entries: ChangeEntry[] = [];
+
+  const take = (kind: ChangeEntry['kind'], id: string, title: string, item: Authored) => {
+    const by = creditFor(item, me);
+    const at = item.createdAt;
+    if (by && at) entries.push({ id, kind, title, by, at });
+  };
+
+  for (const d of state.docs) take('doc', d.id, d.title, d);
+  for (const e of state.events) take('event', e.id, e.title, e);
+  for (const t of state.tasks) take('task', t.id, t.title, t);
+
+  return entries.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 50);
 }
 
 // ------------------------------------------------------------------ search --

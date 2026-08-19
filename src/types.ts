@@ -14,6 +14,20 @@
 /** 3 = high, 2 = medium, 1 = low. Ordered so numeric comparison is meaningful. */
 export type Priority = 1 | 2 | 3;
 
+/**
+ * Who made a thing, and when.
+ *
+ * Both optional, and deliberately so: everything written before these existed
+ * has neither, and a single-user workspace has nobody to attribute anything
+ * to. The author is stored as the email that made it rather than an id
+ * pointing at a member row — a name that survives on its own needs no lookup
+ * to render, and no join to stay correct.
+ */
+export interface Authored {
+  createdBy?: string;
+  createdAt?: string;
+}
+
 export interface Domain {
   id: string;
   name: string;
@@ -39,7 +53,7 @@ export interface Goal {
   progress: number;
 }
 
-export interface Task {
+export interface Task extends Authored {
   id: string;
   domainId: string;
   title: string;
@@ -58,7 +72,7 @@ export interface Task {
 export type DocKind = 'note' | 'link' | 'image' | 'file';
 
 /** A Wall item — the digital equivalent of something pinned above a desk. */
-export interface Doc {
+export interface Doc extends Authored {
   id: string;
   title: string;
   kind: DocKind;
@@ -75,18 +89,15 @@ export interface Doc {
   /** Pinned docs sort to the front of the Wall. */
   pinned: boolean;
   updatedAt: string;
-  /**
-   * When the document was first put on the Wall — what World shows on the day
-   * it was added. Optional because documents written before this field existed
-   * don't have one; readers fall back to `updatedAt` via `docCreatedAt`.
-   */
-  createdAt?: string;
+  /* `createdAt` (from Authored) is what World shows on the day it was added.
+     Documents written before that field existed fall back to `updatedAt` via
+     `docCreatedAt`. */
 }
 
 /** How an event repeats. Absent means it happens once. */
 export type Recurrence = 'daily' | 'weekdays';
 
-export interface CalEvent {
+export interface CalEvent extends Authored {
   id: string;
   title: string;
   domainId?: string;

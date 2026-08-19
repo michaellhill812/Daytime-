@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import NewDocSheet from '../components/NewDocSheet';
 import { usePeek } from '../components/PeekProvider';
-import { useDaytimeState } from '../store/context';
-import { domainById, searchDocs, tasksForDoc } from '../store/selectors';
+import { useDaytimeState, useStore } from '../store/context';
+import { creditFor, domainById, searchDocs, tasksForDoc } from '../store/selectors';
 import { formatShortDay } from '../lib/date';
 import type { Doc, DocKind } from '../types';
 
@@ -126,8 +126,10 @@ export default function WallView({ active }: { active: boolean }) {
 
 function WallCard({ doc, onOpen }: { doc: Doc; onOpen: () => void }) {
   const state = useDaytimeState();
+  const store = useStore();
   const domain = domainById(state, doc.domainId);
   const refs = tasksForDoc(state, doc.id);
+  const credit = creditFor(doc, store.actor);
 
   // A <div> rather than a <button>: Chrome doesn't report a button's flex content
   // height to the grid, so tall cards spilled past their own border.
@@ -166,6 +168,7 @@ function WallCard({ doc, onOpen }: { doc: Doc; onOpen: () => void }) {
       <span className="card__foot">
         {domain && <span style={{ color: domain.accent }}>{domain.name}</span>}
         <span>{formatShortDay(new Date(doc.updatedAt))}</span>
+        {credit && <span className="card__by">added by {credit}</span>}
         {refs.length > 0 && (
           <span className="card__refs" title={`${refs.length} task(s) reference this`}>
             {refs.length}

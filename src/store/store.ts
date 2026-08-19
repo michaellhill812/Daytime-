@@ -16,12 +16,27 @@ export class DaytimeStore {
   private listeners = new Set<Listener>();
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * Who is making these changes — the signed-in email, or null when nobody is
+   * signed in. Not part of the shared document: it describes this session, not
+   * the workspace, and writing it into state would send it to everyone.
+   */
+  actor: string | null = null;
+
   constructor(
     initial: DaytimeState,
     readonly adapter: StorageAdapter,
     private readonly saveDelayMs = 250,
   ) {
     this.state = initial;
+  }
+
+  /** Fields stamped on anything newly created, so the Wall can say who added it. */
+  private authorship(): { createdAt: string; createdBy?: string } {
+    return {
+      createdAt: new Date().toISOString(),
+      ...(this.actor ? { createdBy: this.actor } : {}),
+    };
   }
 
   getState = (): DaytimeState => this.state;
@@ -73,6 +88,7 @@ export class DaytimeStore {
       done: false,
       docIds: [],
       eventIds: [],
+      ...this.authorship(),
       ...(input.due ? { due: input.due } : {}),
       ...(input.notes ? { notes: input.notes } : {}),
     };
@@ -147,14 +163,13 @@ export class DaytimeStore {
     body?: string;
     kind?: Doc['kind'];
   }): Doc => {
-    const now = new Date().toISOString();
     const doc: Doc = {
       id: uid('doc'),
       title: input.title.trim(),
       kind: input.kind ?? 'note',
       pinned: false,
-      updatedAt: now,
-      createdAt: now,
+      updatedAt: new Date().toISOString(),
+      ...this.authorship(),
       ...(input.domainId ? { domainId: input.domainId } : {}),
       ...(input.body ? { body: input.body } : {}),
     };
@@ -205,6 +220,7 @@ export class DaytimeStore {
       title: input.title.trim(),
       start: input.start,
       allDay: input.allDay ?? false,
+      ...this.authorship(),
       ...(input.end ? { end: input.end } : {}),
       ...(input.domainId ? { domainId: input.domainId } : {}),
       ...(input.location ? { location: input.location } : {}),

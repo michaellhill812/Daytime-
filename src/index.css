@@ -13,6 +13,7 @@
   --surface: rgba(255, 255, 255, 0.045);
   --surface-2: rgba(255, 255, 255, 0.08);
   --alert: #ff453a;
+  --warn: #ff9f0a;
   --done: #30d158;
 
   --ease: cubic-bezier(0.22, 0.8, 0.28, 1);
@@ -1519,6 +1520,76 @@ button {
 
 /* The account chip doubles as the sync light: it dims while a write is in
    flight and turns red if one failed, so an unsaved edit is never invisible. */
+/* Sits immediately left of the account button, which owns the corner. */
+.bell {
+  position: fixed;
+  top: calc(var(--safe-top) + 14px);
+  right: 58px;
+  z-index: 40;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  transition: all 240ms var(--ease);
+}
+
+.bell:hover {
+  color: var(--text);
+}
+
+.bell--live {
+  color: var(--text);
+  border-color: rgba(255, 159, 10, 0.5);
+}
+
+.bell__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #101216;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* In the feed the credit is the point, so it gets room rather than being
+   squeezed to the end of the row. */
+.sheet .agenda__when {
+  width: 74px;
+}
+
+.sheet .agenda__where {
+  flex: none;
+  max-width: 38%;
+  text-align: right;
+}
+
+/* A change you have not read yet, inside the feed. */
+.agenda--fresh .agenda__title {
+  color: var(--text);
+}
+
+.agenda--fresh .agenda__when {
+  color: var(--warn);
+}
+
+.card__by,
+.task__by {
+  color: var(--faint);
+  font-style: italic;
+}
+
 .account {
   position: fixed;
   top: calc(var(--safe-top) + 14px);

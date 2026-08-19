@@ -1,6 +1,12 @@
 import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
-import { PRIORITY_COLOR, docsForTask, domainById, eventsForTask } from '../store/selectors';
+import {
+  PRIORITY_COLOR,
+  creditFor,
+  docsForTask,
+  domainById,
+  eventsForTask,
+} from '../store/selectors';
 import { dueLabel, formatTime, toTimeInput } from '../lib/date';
 import type { Task } from '../types';
 
@@ -49,6 +55,7 @@ export default function TaskRow({
   const domain = domainById(state, task.domainId);
   const docs = docsForTask(state, task);
   const events = eventsForTask(state, task);
+  const credit = creditFor(task, store.actor);
   const overdue = !task.done && !!task.due && new Date(task.due).getTime() < now.getTime();
 
   return (
@@ -94,6 +101,7 @@ export default function TaskRow({
             </span>
           )}
           {!task.due && !task.done && <span className="task__due task__due--none">Someday</span>}
+          {credit && <span className="task__by">added by {credit}</span>}
 
           {docs.map((doc) => (
             <button

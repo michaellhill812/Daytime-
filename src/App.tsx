@@ -3,6 +3,7 @@ import WheelView from './views/WheelView';
 import WallView from './views/WallView';
 import WorldView from './views/WorldView';
 import ViewRail from './components/ViewRail';
+import UpdatesBell from './components/UpdatesBell';
 import { PeekProvider } from './components/PeekProvider';
 import type { ViewId } from './types';
 
@@ -53,6 +54,10 @@ export default function App() {
         </div>
 
         <WorldView open={worldOpen} onClose={() => setWorldOpen(false)} />
+
+        {/* Inside the provider: opening an item from the feed uses the same
+            peek sheets every other view does. */}
+        <UpdatesBell />
       </PeekProvider>
 
       <ViewRail current={current} onNavigate={goTo} />
