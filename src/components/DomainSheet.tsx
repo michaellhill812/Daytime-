@@ -5,7 +5,7 @@ import TaskRow from './TaskRow';
 import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
 import { NEXT_PRIORITY, PRIORITY_COLOR, PRIORITY_LABEL, domainSnapshot } from '../store/selectors';
-import { formatShortDay, formatTime, toDateKey } from '../lib/date';
+import { formatShortDay, formatTime, fromDateTimeInputs, toDateKey } from '../lib/date';
 import type { Goal, Priority } from '../types';
 
 interface DomainSheetProps {
@@ -53,19 +53,14 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
 
   if (!snap) return null;
 
+  const onceEvents = snap.events.filter((e) => !e.recurrence);
+  const routineEvents = snap.events.filter((e) => e.recurrence);
+
   const submit = () => {
     const title = draft.trim();
     if (!title) return;
 
-    let due: string | undefined;
-    if (dueDate) {
-      // Built from parts rather than parsed from a string: `new Date('2026-03-04')`
-      // is UTC midnight, which is the previous day for anyone west of Greenwich.
-      const [y, mo, d] = dueDate.split('-').map(Number);
-      const [h, mi] = dueTime ? dueTime.split(':').map(Number) : [23, 59];
-      const at = new Date(y ?? 1970, (mo ?? 1) - 1, d ?? 1, h ?? 23, mi ?? 59, 0, 0);
-      due = at.toISOString();
-    }
+    const due = fromDateTimeInputs(dueDate, dueTime);
 
     store.addTask({ domainId: snap.domain.id, title, priority, ...(due ? { due } : {}) });
     setDraft('');
@@ -179,11 +174,15 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
         </section>
       )}
 
+      {/* Tasks and one-off events sit in one list: a meeting you scheduled and
+          a job you wrote down are both things this spoke owes you. The routine
+          blocks are held back below — repeated daily, they'd bury everything
+          that only happens once. */}
       <section className="block">
         <h3 className="block__title">
-          Open<span className="block__count">{snap.open.length}</span>
+          Open<span className="block__count">{snap.open.length + onceEvents.length}</span>
         </h3>
-        {snap.open.length === 0 ? (
+        {snap.open.length === 0 && onceEvents.length === 0 ? (
           <p className="empty">Clear.</p>
         ) : (
           <div className="list">
@@ -195,6 +194,20 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
                 onOpenDoc={openDoc}
                 onOpenEvent={openEvent}
               />
+            ))}
+            {onceEvents.map((ev) => (
+              <button
+                key={ev.id}
+                type="button"
+                className="event-row"
+                onClick={() => openEvent(ev.id)}
+              >
+                <span className="event-row__when">
+                  {formatShortDay(new Date(ev.start))}
+                  {!ev.allDay && ` · ${formatTime(new Date(ev.start))}`}
+                </span>
+                <span className="event-row__title">{ev.title}</span>
+              </button>
             ))}
           </div>
         )}
@@ -217,11 +230,11 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
         </section>
       )}
 
-      {snap.events.length > 0 && (
+      {routineEvents.length > 0 && (
         <section className="block">
-          <h3 className="block__title">In World</h3>
+          <h3 className="block__title">Routine</h3>
           <div className="list">
-            {snap.events.map((ev) => (
+            {routineEvents.map((ev) => (
               <button
                 key={ev.id}
                 type="button"
@@ -229,7 +242,7 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
                 onClick={() => openEvent(ev.id)}
               >
                 <span className="event-row__when">
-                  {formatShortDay(new Date(ev.start))}
+                  {ev.recurrence === 'weekdays' ? 'Weekdays' : 'Daily'}
                   {!ev.allDay && ` · ${formatTime(new Date(ev.start))}`}
                 </span>
                 <span className="event-row__title">{ev.title}</span>

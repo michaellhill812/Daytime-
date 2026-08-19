@@ -1,6 +1,7 @@
+import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
 import { PRIORITY_COLOR, docsForTask, domainById, eventsForTask } from '../store/selectors';
-import { dueLabel, formatTime } from '../lib/date';
+import { dueLabel, formatTime, toTimeInput } from '../lib/date';
 import type { Task } from '../types';
 
 interface TaskRowProps {
@@ -24,9 +25,9 @@ interface TaskRowProps {
  * one minute reads as what it means.
  */
 function dueClock(due: string): string {
-  const d = new Date(due);
-  if (d.getHours() === 23 && d.getMinutes() === 59) return 'End of day';
-  return formatTime(d);
+  // An empty time input is exactly what `toTimeInput` reports for the
+  // end-of-day minute, so the two stay in step without repeating the number.
+  return toTimeInput(due) === '' ? 'End of day' : formatTime(new Date(due));
 }
 
 /**
@@ -43,6 +44,7 @@ export default function TaskRow({
 }: TaskRowProps) {
   const state = useDaytimeState();
   const store = useStore();
+  const { openTask } = usePeek();
 
   const domain = domainById(state, task.domainId);
   const docs = docsForTask(state, task);
@@ -74,7 +76,11 @@ export default function TaskRow({
       </button>
 
       <div className="task__main">
-        <p className="task__title">{task.title}</p>
+        {/* The title is the handle for editing. The checkbox stays a separate
+            target so ticking something off never risks opening a sheet. */}
+        <button type="button" className="task__title" onClick={() => openTask(task.id)}>
+          {task.title}
+        </button>
 
         <div className="task__meta">
           {showDomain && domain && (

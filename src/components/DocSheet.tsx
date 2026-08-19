@@ -57,9 +57,21 @@ export default function DocSheet({
         </a>
       )}
 
-      {/* Re-filing has to be possible here: documents pinned before the Wall
-          asked for a spoke have none, and this is the only place to give them one. */}
+      {/* Renaming and re-filing both have to be possible here: this is the only
+          place either can be changed after the fact, and documents written
+          before the Wall asked for a spoke have none at all. */}
       <div className="compose compose--inline">
+        <label className="compose__label" htmlFor="doc-title">
+          Title
+        </label>
+        <input
+          id="doc-title"
+          className="field"
+          value={doc.title}
+          placeholder="Untitled"
+          onChange={(e) => store.updateDoc(doc.id, { title: e.target.value })}
+        />
+
         <label className="compose__label" htmlFor="doc-domain">
           Spoke
         </label>
@@ -83,7 +95,7 @@ export default function DocSheet({
 
       <div className="row-actions">
         <button type="button" className="btn" onClick={() => store.toggleDocPin(doc.id)}>
-          {doc.pinned ? 'Unpin from Wall' : 'Pin to Wall'}
+          {doc.pinned ? 'Unpin from top' : 'Pin to top'}
         </button>
         <button
           type="button"

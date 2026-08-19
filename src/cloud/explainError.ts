@@ -31,7 +31,11 @@ export function explainSupabaseError(err: unknown): string {
   }
 
   // Wrong project URL, project paused, or genuinely offline.
-  if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('load failed')) {
+  if (
+    lower.includes('failed to fetch') ||
+    lower.includes('networkerror') ||
+    lower.includes('load failed')
+  ) {
     return 'Could not reach the database at all. Check VITE_SUPABASE_URL is the exact Project URL from Settings → Data API, and that the Supabase project is not paused.';
   }
 

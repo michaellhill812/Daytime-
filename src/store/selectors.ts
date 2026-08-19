@@ -304,8 +304,174 @@ export function docsAddedOn(state: DaytimeState, day: Date): Doc[] {
     .sort((a, b) => docCreatedAt(a).localeCompare(docCreatedAt(b)));
 }
 
+/**
+ * One row in a day's schedule, whichever view it came from.
+ *
+ * The Wheel and World hold two halves of the same day: a deadline set on a
+ * task and a block put on the calendar are both "something happening at 2pm",
+ * and reading them in two separate lists means reading the day twice. An
+ * agenda item is the shared shape that lets one timeline show both.
+ */
+export interface AgendaItem {
+  id: string;
+  kind: 'event' | 'task';
+  title: string;
+  /** Null when the thing has no clock time — it belongs at the foot of the day. */
+  at: Date | null;
+  end: Date | null;
+  domainId?: string;
+  priority?: Priority;
+  /** Tasks only. */
+  done?: boolean;
+  event?: CalEvent;
+  task?: Task;
+}
+
+function taskAgendaItem(task: Task): AgendaItem {
+  const due = new Date(task.due!);
+  // An end-of-day deadline is a day, not a moment: it has no place on the
+  // clock and belongs with the to-dos underneath it.
+  const timed = !(due.getHours() === 23 && due.getMinutes() === 59);
+  return {
+    id: task.id,
+    kind: 'task',
+    title: task.title,
+    at: timed ? due : null,
+    end: null,
+    priority: task.priority,
+    done: task.done,
+    task,
+    ...(task.domainId ? { domainId: task.domainId } : {}),
+  };
+}
+
+function eventAgendaItem(event: CalEvent): AgendaItem {
+  return {
+    id: event.id,
+    kind: 'event',
+    title: event.title,
+    at: event.allDay ? null : new Date(event.start),
+    end: event.end ? new Date(event.end) : null,
+    event,
+    ...(event.domainId ? { domainId: event.domainId } : {}),
+    ...(event.priority ? { priority: event.priority } : {}),
+  };
+}
+
+/**
+ * A day read as one schedule: everything with a time in clock order, then
+ * everything without one underneath. Tasks with no date at all never appear —
+ * those have no claim on any particular day and stay on the Wheel.
+ */
+export function dayAgenda(
+  state: DaytimeState,
+  day: Date,
+): { timed: AgendaItem[]; untimed: AgendaItem[] } {
+  const items = [
+    ...eventsOnDay(state, day).map(eventAgendaItem),
+    ...tasksOnDay(state, day).map(taskAgendaItem),
+  ];
+
+  const timed = items
+    .filter((i) => i.at !== null)
+    .sort((a, b) => a.at!.getTime() - b.at!.getTime());
+
+  // Unfinished work sits above what's already done, and above all-day events,
+  // which are context rather than something to act on.
+  const untimed = items
+    .filter((i) => i.at === null)
+    .sort(
+      (a, b) =>
+        Number(a.done ?? false) - Number(b.done ?? false) ||
+        Number(a.kind === 'event') - Number(b.kind === 'event'),
+    );
+
+  return { timed, untimed };
+}
+
 export function dayNote(state: DaytimeState, day: Date): string {
   return state.dayNotes.find((n) => n.date === toDateKey(day))?.body ?? '';
+}
+
+// ------------------------------------------------------------------ search --
+
+/**
+ * Case-insensitive substring match across every word of the query, in any
+ * order — "resume career" finds "Career Research Findings" the same as
+ * "career resume" does. Deliberately not fuzzy: on a few dozen items an exact
+ * substring is predictable, and a fuzzy match that surfaces the wrong note is
+ * worse than one that surfaces nothing.
+ */
+function matches(haystack: string, terms: string[]): boolean {
+  const hay = haystack.toLowerCase();
+  return terms.every((t) => hay.includes(t));
+}
+
+export function searchTerms(query: string): string[] {
+  return query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+/** Wall documents matching a query, searched over title and body alike. */
+export function searchDocs(state: DaytimeState, query: string): Doc[] {
+  const terms = searchTerms(query);
+  if (terms.length === 0) return state.docs;
+
+  return state.docs.filter((d) => {
+    const domain = domainById(state, d.domainId)?.name ?? '';
+    return matches(`${d.title} ${d.body ?? ''} ${domain}`, terms);
+  });
+}
+
+export interface EventHit {
+  event: CalEvent;
+  /** The next occurrence at or after today, so a repeat resolves to a real date. */
+  when: Date;
+}
+
+/**
+ * Events matching a query, each resolved to a date you can navigate to.
+ * A repeating event has no single date of its own, so it reports its next
+ * occurrence rather than the day the rule was first written.
+ */
+export function searchEvents(state: DaytimeState, query: string, from: Date): EventHit[] {
+  const terms = searchTerms(query);
+  if (terms.length === 0) return [];
+
+  const hits: EventHit[] = [];
+  for (const event of state.events) {
+    const domain = domainById(state, event.domainId)?.name ?? '';
+    if (!matches(`${event.title} ${event.location ?? ''} ${domain}`, terms)) continue;
+
+    if (!event.recurrence) {
+      hits.push({ event, when: new Date(event.start) });
+      continue;
+    }
+    // Walk forward to the next day the rule lands on. A week is enough for
+    // every recurrence this app supports.
+    let day = startOfDay(from);
+    for (let i = 0; i < 8; i += 1) {
+      if (repeatsOn(event, day)) {
+        hits.push({ event, when: new Date(occurrenceOn(event, day).start) });
+        break;
+      }
+      day = new Date(day.getTime() + 24 * 60 * 60 * 1000);
+    }
+  }
+
+  return hits.sort((a, b) => a.when.getTime() - b.when.getTime());
+}
+
+/** Tasks matching a query. Only dated ones can be pointed at on a calendar. */
+export function searchTasks(state: DaytimeState, query: string): Task[] {
+  const terms = searchTerms(query);
+  if (terms.length === 0) return [];
+
+  return state.tasks
+    .filter((t) => {
+      const domain = domainById(state, t.domainId)?.name ?? '';
+      return matches(`${t.title} ${t.notes ?? ''} ${domain}`, terms);
+    })
+    .sort((a, b) => (a.due ?? '~').localeCompare(b.due ?? '~'));
 }
 
 export function domainById(state: DaytimeState, id: string | undefined): Domain | undefined {

@@ -42,6 +42,40 @@ export function fromDateKey(key: string): Date {
   return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
 }
 
+/**
+ * The end-of-day minute a date-only deadline is stored at. A task due "on
+ * Thursday" is due by the end of Thursday, and this is the one minute that
+ * means "no particular time" rather than a time somebody chose.
+ */
+export const END_OF_DAY = { h: 23, m: 59 } as const;
+
+/** `<input type="time">` value for a deadline, or '' when it is end-of-day. */
+export function toTimeInput(iso: string): string {
+  const d = new Date(iso);
+  if (d.getHours() === END_OF_DAY.h && d.getMinutes() === END_OF_DAY.m) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * Build a deadline from the two inputs. Assembled from parts rather than
+ * parsed: `new Date('2026-03-04')` is UTC midnight, which is the previous day
+ * for anyone west of Greenwich. An empty date means no deadline at all.
+ */
+export function fromDateTimeInputs(date: string, time: string): string | undefined {
+  if (!date) return undefined;
+  const [y, mo, d] = date.split('-').map(Number);
+  const [h, mi] = time ? time.split(':').map(Number) : [END_OF_DAY.h, END_OF_DAY.m];
+  return new Date(
+    y ?? 1970,
+    (mo ?? 1) - 1,
+    d ?? 1,
+    h ?? END_OF_DAY.h,
+    mi ?? END_OF_DAY.m,
+    0,
+    0,
+  ).toISOString();
+}
+
 export function isSameDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import NewDocSheet from '../components/NewDocSheet';
 import { usePeek } from '../components/PeekProvider';
 import { useDaytimeState } from '../store/context';
-import { domainById, tasksForDoc } from '../store/selectors';
+import { domainById, searchDocs, tasksForDoc } from '../store/selectors';
 import { formatShortDay } from '../lib/date';
 import type { Doc, DocKind } from '../types';
 
@@ -23,20 +23,44 @@ export default function WallView({ active }: { active: boolean }) {
   const { openDoc } = usePeek();
   const [filter, setFilter] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
+  const [query, setQuery] = useState('');
 
   const docs = useMemo(() => {
-    const list = filter ? state.docs.filter((d) => d.domainId === filter) : state.docs;
+    const found = searchDocs(state, query);
+    const list = filter ? found.filter((d) => d.domainId === filter) : found;
     return [...list].sort(
       (a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt),
     );
-  }, [state.docs, filter]);
+  }, [state, query, filter]);
 
   const addDoc = () => setComposing(true);
 
   return (
     <div className={`view view--wall${active ? ' is-active' : ''}`} aria-hidden={!active}>
       <header className="wall__head">
-        <h1 className="view__title">Wall</h1>
+        <div className="wall__title-row">
+          <h1 className="view__title">Wall</h1>
+          <div className="search">
+            <input
+              className="field field--search"
+              type="search"
+              placeholder="Search the Wall…"
+              value={query}
+              aria-label="Search the Wall"
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {query && (
+              <button
+                type="button"
+                className="search__clear"
+                aria-label="Clear search"
+                onClick={() => setQuery('')}
+              >
+                ×
+              </button>
+            )}
+          </div>
+        </div>
         <div className="filters">
           <button
             type="button"
@@ -59,6 +83,10 @@ export default function WallView({ active }: { active: boolean }) {
         </div>
       </header>
 
+      {query && docs.length === 0 && (
+        <p className="empty">Nothing on the Wall matches “{query.trim()}”.</p>
+      )}
+
       <div className="wall__grid">
         {docs.map((doc) => (
           <WallCard key={doc.id} doc={doc} onOpen={() => openDoc(doc.id)} />
@@ -79,7 +107,7 @@ export default function WallView({ active }: { active: boolean }) {
           <span className="card--add__plus" aria-hidden>
             +
           </span>
-          <span>Pin something</span>
+          <span>Add something</span>
         </div>
       </div>
 

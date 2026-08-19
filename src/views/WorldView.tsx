@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import TaskRow from '../components/TaskRow';
+import AgendaRow from '../components/AgendaRow';
 import { usePeek } from '../components/PeekProvider';
 import type { Priority } from '../types';
 import { useDaytimeState, useStore } from '../store/context';
@@ -7,11 +7,14 @@ import {
   NEXT_PRIORITY,
   PRIORITY_COLOR,
   PRIORITY_LABEL,
+  dayAgenda,
   dayNote,
   docCreatedAt,
   docsAddedOn,
   domainById,
   eventsOnDay,
+  searchEvents,
+  searchTasks,
   tasksOnDay,
 } from '../store/selectors';
 import { useNow } from '../hooks/useNow';
@@ -19,6 +22,7 @@ import {
   addMonths,
   formatDayLabel,
   formatMonthYear,
+  formatShortDay,
   formatTime,
   isSameDay,
   monthGrid,
@@ -36,7 +40,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
   const state = useDaytimeState();
   const store = useStore();
   const now = useNow();
-  const { openDoc, openEvent } = usePeek();
+  const { openDoc } = usePeek();
 
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [selected, setSelected] = useState(() => startOfDay(new Date()));
@@ -45,6 +49,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
   const [draftTime, setDraftTime] = useState('09:00');
   const [draftDomain, setDraftDomain] = useState('');
   const [draftPriority, setDraftPriority] = useState<Priority>(2);
+  const [query, setQuery] = useState('');
 
   // Coming back to World should feel like arriving at now, not where you left off.
   useEffect(() => {
@@ -57,9 +62,32 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
   }, [open]);
 
   const grid = useMemo(() => monthGrid(anchor), [anchor]);
-  const dayEvents = useMemo(() => eventsOnDay(state, selected), [state, selected]);
-  const dayTasks = useMemo(() => tasksOnDay(state, selected), [state, selected]);
+  const { timed, untimed } = useMemo(() => dayAgenda(state, selected), [state, selected]);
   const dayDocs = useMemo(() => docsAddedOn(state, selected), [state, selected]);
+
+  // Events and dated tasks answer the same question — "when is that?" — so
+  // both are searched, and an undated task is left out because there is no
+  // day to send you to.
+  const hits = useMemo(() => {
+    if (!query.trim()) return [];
+    const events = searchEvents(state, query, now).map((h) => ({
+      key: `ev-${h.event.id}`,
+      title: h.event.title,
+      when: h.when,
+      kind: h.event.recurrence ? 'routine' : 'event',
+      accent: domainById(state, h.event.domainId)?.accent ?? 'rgba(255,255,255,0.3)',
+    }));
+    const tasks = searchTasks(state, query)
+      .filter((t) => t.due)
+      .map((t) => ({
+        key: `task-${t.id}`,
+        title: t.title,
+        when: new Date(t.due!),
+        kind: t.done ? 'done' : 'due',
+        accent: domainById(state, t.domainId)?.accent ?? 'rgba(255,255,255,0.3)',
+      }));
+    return [...events, ...tasks].sort((a, b) => a.when.getTime() - b.when.getTime()).slice(0, 25);
+  }, [state, query, now]);
   const note = dayNote(state, selected);
 
   const submitEvent = () => {
@@ -106,6 +134,55 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
           Close
         </button>
       </header>
+
+      <div className="search search--world">
+        <input
+          className="field field--search"
+          type="search"
+          placeholder="Search events and deadlines…"
+          value={query}
+          aria-label="Search the calendar"
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        {query && (
+          <button
+            type="button"
+            className="search__clear"
+            aria-label="Clear search"
+            onClick={() => setQuery('')}
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {/* Results jump the calendar rather than replacing it — the answer to
+          "when is that?" is a date, so landing on the day is the whole point. */}
+      {query.trim() && (
+        <div className="results">
+          {hits.length === 0 ? (
+            <p className="empty">Nothing matches “{query.trim()}”.</p>
+          ) : (
+            hits.map((hit) => (
+              <button
+                key={hit.key}
+                type="button"
+                className="event-row"
+                style={{ '--row-accent': hit.accent } as React.CSSProperties}
+                onClick={() => {
+                  setAnchor(startOfDay(hit.when));
+                  setSelected(startOfDay(hit.when));
+                  setQuery('');
+                }}
+              >
+                <span className="event-row__when">{formatShortDay(hit.when)}</span>
+                <span className="event-row__title">{hit.title}</span>
+                <span className="event-row__where">{hit.kind}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
 
       <div className="world__weekdays" aria-hidden>
         {WEEKDAYS.map((d, i) => (
@@ -220,53 +297,30 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
           </div>
         )}
 
-        {dayEvents.length === 0 && dayTasks.length === 0 && dayDocs.length === 0 && !note && (
+        {timed.length === 0 && untimed.length === 0 && dayDocs.length === 0 && !note && (
           <p className="empty">Nothing on this day.</p>
         )}
 
-        {dayEvents.length > 0 && (
+        {/* One schedule, not two lists: a 2pm deadline set on the Wheel and a
+            2pm block put on the calendar are the same fact about the day, and
+            reading them apart means reading the day twice. */}
+        {timed.length > 0 && (
           <section className="block">
-            <h3 className="block__title">Events</h3>
+            <h3 className="block__title">Schedule</h3>
             <div className="list">
-              {dayEvents.map((ev) => {
-                const domain = domainById(state, ev.domainId);
-                return (
-                  <button
-                    key={ev.id}
-                    type="button"
-                    className="event-row"
-                    onClick={() => openEvent(ev.id)}
-                    style={
-                      {
-                        '--row-accent': domain?.accent ?? 'rgba(255,255,255,0.3)',
-                      } as React.CSSProperties
-                    }
-                  >
-                    <span className="event-row__when">
-                      {ev.allDay ? 'all day' : formatTime(new Date(ev.start))}
-                    </span>
-                    <span className="event-row__title">{ev.title}</span>
-                    {ev.priority && (
-                      <span
-                        className="event-row__priority"
-                        style={{ background: PRIORITY_COLOR[ev.priority] }}
-                        title={`${PRIORITY_LABEL[ev.priority]} priority`}
-                      />
-                    )}
-                    {ev.location && <span className="event-row__where">{ev.location}</span>}
-                  </button>
-                );
-              })}
+              {timed.map((item) => (
+                <AgendaRow key={`${item.kind}-${item.id}`} item={item} />
+              ))}
             </div>
           </section>
         )}
 
-        {dayTasks.length > 0 && (
+        {untimed.length > 0 && (
           <section className="block">
-            <h3 className="block__title">Due</h3>
+            <h3 className="block__title">Also today</h3>
             <div className="list">
-              {dayTasks.map((task) => (
-                <TaskRow key={task.id} task={task} now={now} showDomain showTime />
+              {untimed.map((item) => (
+                <AgendaRow key={`${item.kind}-${item.id}`} item={item} />
               ))}
             </div>
           </section>

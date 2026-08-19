@@ -41,12 +41,7 @@ export default function Wheel({
   const span = segments.length > 0 ? 360 / segments.length : 360;
 
   return (
-    <svg
-      className="wheel"
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
-      role="group"
-      aria-label="Task domains"
-    >
+    <svg className="wheel" viewBox={`0 0 ${SIZE} ${SIZE}`} role="group" aria-label="Task domains">
       <defs>
         <radialGradient id="hubGlow" cx="50%" cy="42%" r="65%">
           <stop offset="0%" stopColor="rgba(255,255,255,0.10)" />
@@ -174,7 +169,6 @@ export default function Wheel({
                 </text>
               )}
             </g>
-
           </g>
         );
       })}

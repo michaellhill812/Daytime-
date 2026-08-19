@@ -49,9 +49,7 @@ export default function FocusSheet({ open, onClose, digest, now }: FocusSheetPro
       subtitle={formatDayLabel(now)}
     >
       {digest.count === 0 ? (
-        <p className="empty">
-          Everything with a deadline is handled. The wheel keeps the rest.
-        </p>
+        <p className="empty">Everything with a deadline is handled. The wheel keeps the rest.</p>
       ) : (
         <>
           {group('Overdue', digest.overdue, 'alert')}

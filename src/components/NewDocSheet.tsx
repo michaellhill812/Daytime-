@@ -14,11 +14,15 @@ interface NewDocSheetProps {
 /**
  * The compose step for the Wall.
  *
- * Pinning something used to create an "Untitled" document with no category and
+ * Adding something used to create an "Untitled" document with no category and
  * drop you straight into the editor, which meant the two things that make a
  * document findable — its name and its spoke — were the two you were most
  * likely to skip. Asking first costs one sheet and makes them the default
  * rather than an afterthought.
+ *
+ * Note the verb. "Pin" means one thing on the Wall — sorted to the front — so
+ * creating something is "add". They were both "Pin to Wall" briefly, which read
+ * as the app asking you to pin what you had just pinned.
  */
 export default function NewDocSheet({
   open,
@@ -64,7 +68,7 @@ export default function NewDocSheet({
     <Sheet
       open
       onClose={onClose}
-      title="Pin something"
+      title="Add to the Wall"
       subtitle="Give it a name and a spoke so it can be found again."
       {...(accent ? { accent } : {})}
     >
@@ -124,7 +128,7 @@ export default function NewDocSheet({
           onClick={submit}
           disabled={!title.trim()}
         >
-          Pin to Wall
+          Add to Wall
         </button>
       </div>
     </Sheet>

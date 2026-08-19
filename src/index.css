@@ -786,10 +786,25 @@ button {
   min-width: 0;
 }
 
+/* A button, but it has to read as the plain text it replaced — the affordance
+   is the whole row, not a link-looking title. */
 .task__title {
   margin: 0;
+  padding: 0;
   font-size: 14.5px;
   line-height: 1.35;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 14.5px;
+  width: 100%;
+  transition: opacity 160ms var(--ease);
+}
+
+.task__title:hover {
+  opacity: 0.66;
 }
 
 .task--done .task__title {
@@ -900,6 +915,127 @@ button {
 .event-row__where {
   font-size: 11.5px;
   color: var(--faint);
+}
+
+/* ------------------------------------------------------------- agenda -- */
+
+.agenda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.agenda:last-child {
+  border-bottom: 0;
+}
+
+.agenda__when {
+  flex: none;
+  width: 92px;
+  font-size: 11.5px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda__check {
+  flex: none;
+}
+
+/* Stands in for the checkbox on an event, so titles line up down the column
+   without implying an event is something you tick off. */
+.agenda__bullet {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--row-accent, transparent);
+  opacity: 0.5;
+}
+
+.agenda__title {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-left: 2px solid var(--row-accent, transparent);
+  padding: 0 0 0 10px;
+  font-family: inherit;
+  transition: opacity 160ms var(--ease);
+}
+
+.agenda__title:hover {
+  opacity: 0.66;
+}
+
+.agenda--done .agenda__title {
+  color: var(--faint);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.2);
+}
+
+.agenda__where {
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+/* ------------------------------------------------------------- search -- */
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.search--world {
+  margin: 0 20px 4px;
+  flex: none;
+}
+
+.field--search {
+  width: 100%;
+  min-width: 0;
+  padding-right: 30px;
+  font-size: 13px;
+}
+
+.search__clear {
+  position: absolute;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.search__clear:hover {
+  color: var(--text);
+}
+
+.results {
+  margin: 4px 20px 8px;
+  max-height: 40vh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 2px 12px;
+  background: var(--surface);
+}
+
+.wall__title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .event-row__priority {
@@ -1133,6 +1269,23 @@ button {
   gap: 8px;
   margin-top: 14px;
   flex-wrap: wrap;
+}
+
+/* Inside the compose column, where a lone control shouldn't inherit the
+   footer spacing the sheet's action row uses. */
+.row-actions--start {
+  margin-top: 0;
+}
+
+.compose__row {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.compose__row .field {
+  flex: none;
 }
 
 .icon-btn {

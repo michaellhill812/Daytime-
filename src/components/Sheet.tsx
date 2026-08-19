@@ -1,5 +1,15 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+
+/**
+ * Open sheets, oldest first. A task opened from inside a domain sheet stacks on
+ * top of it, and every sheet listens for Escape on `window` — where
+ * `stopPropagation` does nothing, since it only stops *other targets*, not the
+ * other listeners already bound to this one. One Escape therefore used to
+ * close the whole stack. Consulting this tells each sheet whether it is the
+ * one on top, so Escape closes exactly one.
+ */
+const stack: string[] = [];
 
 interface SheetProps {
   open: boolean;
@@ -17,28 +27,32 @@ interface SheetProps {
  * otherwise capture `position: fixed`.
  */
 export default function Sheet({ open, onClose, title, subtitle, accent, children }: SheetProps) {
+  const id = useId();
+
   useEffect(() => {
     if (!open) return;
+    stack.push(id);
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        onClose();
-      }
+      if (e.key !== 'Escape') return;
+      if (stack[stack.length - 1] !== id) return;
+      e.stopPropagation();
+      onClose();
     };
+
     window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [open, onClose]);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      const at = stack.lastIndexOf(id);
+      if (at !== -1) stack.splice(at, 1);
+    };
+  }, [open, onClose, id]);
 
   if (!open) return null;
 
   return createPortal(
     <div className="sheet-layer">
-      <button
-        type="button"
-        className="sheet-scrim"
-        aria-label="Close"
-        onClick={onClose}
-      />
+      <button type="button" className="sheet-scrim" aria-label="Close" onClick={onClose} />
       <section
         className="sheet"
         role="dialog"
