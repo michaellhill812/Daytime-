@@ -1,13 +1,17 @@
 # Daytime
 
-A personal productivity heads-up display. One user, three views — **Wheel**, **Wall**, and **World** — over a single shared dataset.
+A personal productivity heads-up display. Three views — **Wheel**, **Wall**, and **World** — over a single shared dataset.
+
+Running on Vercel with Supabase behind it: signed-in, synced across devices, and shareable with another person. See [SETUP.md](SETUP.md) for how that is wired and how to redo it.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5173 — local-only unless .env.local is set
 npm run build    # typecheck + production bundle
 npm run preview  # serve the build
 ```
+
+Without Supabase credentials the app runs entirely in one browser, which is what keeps local development and the single-file embed working with no backend at all.
 
 ---
 
@@ -77,13 +81,14 @@ src/
     context.tsx           React bindings
     merge.ts              three-way merge, for two people saving at once
   cloud/
-    config.ts             is cloud configured? (build-time env)
+    config.ts             is cloud configured, and is the URL even plausible
     supabaseAdapter.ts    compare-and-swap writes, realtime, conflict merge
     CloudBoot.tsx         session → workspace → store, then the same App
     SignIn.tsx            email-link sign-in
     WorkspaceSheet.tsx    members, invites, sign out
+    explainError.ts       Postgres error codes → a sentence you can act on
   lib/                    date, polar geometry, ids
-  components/             Wheel, sheets, task rows, the bottom bar
+  components/             Wheel, sheets, task rows, the bottom bar, source diagrams
   views/                  WheelView, WallView, WorldView
   data/seed.ts            the domains and the Wall documents, source text only
 public/docs/              the source files those documents link to
@@ -92,7 +97,7 @@ supabase/schema.sql       tables, row-level security, and the save RPC
 
 ## What is in it
 
-Nothing in this app is sample data. There are no invented tasks, goals, events or day notes — invented data makes it impossible to tell at a glance what is real, which is the one thing a personal HUD cannot afford. The Wheel starts empty and fills with whatever you actually put in it.
+Nothing in this app is sample data. Every task, event and document is transcribed from a source document, never made up to fill the screen — being unable to tell at a glance what is real is the one thing a personal HUD cannot afford. Where something is a judgement call rather than source (a task's priority, which domain an event belongs to), it is marked as one in `data/seed.ts`.
 
 **Document bodies are source text only.** Every line is transcribed from the file it links to — nothing paraphrased, summarised, re-headed or editorialised, and no connective sentences added. Content may be omitted, never reworded, so anything read in the app can be trusted as the document's own words. Commentary about a document belongs in conversation, not in its body.
 
@@ -124,9 +129,12 @@ The seed is written on first run and never again, so edits are never overwritten
 
 `VITE_EMBED=1 npm run build` produces a variant with attachment links omitted, for inlining into a single self-contained HTML file that has no file server behind it. Document text is identical; only the links to `public/docs/` are dropped, so the embed never shows a dead link.
 
-Not built yet, and worth deciding on before they are:
+## Not built yet
 
-- **Editing domains from the UI.** The store supports add / rename / recolour / remove and the wheel adapts to any count; there is no settings surface yet.
+Worth deciding on before they are:
+
+- **Editing domains from the UI.** The store supports add / rename / recolour / remove and the wheel adapts to any count; there is no settings surface yet, so changing the spokes means editing the seed.
 - **Goal progress** is displayed but not editable — it should probably derive from its domain's task completion rather than being typed in.
-- **Recurring tasks and events**, which change the data model rather than extending it.
-- **Multi-day and timed event layout** in World: events are listed per day, not laid out on a time grid.
+- **Recurring *tasks*.** Events repeat; tasks do not. A daily task would need a notion of per-occurrence completion, which the current model has no room for.
+- **Timed event layout** in World: events are listed per day, not laid out against a time grid.
+- **Concurrent edits to the same item.** Two people editing *different* things merge correctly; two people editing the *same* task within the same second resolve to whoever saved second. Only CRDTs fix that properly.

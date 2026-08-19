@@ -1,23 +1,24 @@
 # Putting Daytime in the cloud
 
-Everything in the app is already written, and the database schema has been run against a real PostgreSQL 16 server: it applies cleanly, re-runs cleanly, and passes 15 checks covering the access rules and the concurrent-write handling. This is the part only you can do — creating the accounts and pasting two values. Roughly 20 minutes.
+**This is done and running.** Supabase holds the data, Vercel serves the app, and signing in works. What follows is the record of how it was set up — for redeploying, moving to another Supabase project, or onboarding someone else.
 
-Until you finish it, nothing changes: with no credentials set, the app runs exactly as it does now, entirely in one browser.
+The database schema was also run against a real PostgreSQL 16 server before deployment: it applies cleanly, re-runs cleanly, and passes 15 checks covering the access rules and the concurrent-write handling.
+
+If no credentials are set, the app quietly falls back to running entirely in one browser — no auth, no network. That is what keeps `npm run dev` and the single-file embed working with no backend at all.
 
 ---
 
-## What you need to give me
+## The values it needs
 
-Four things, and **two of them are secret**. Send me the first two here; keep the last two to yourself and paste them into Vercel directly.
-
-| # | Value | Where it comes from | Safe to paste in chat? |
+| # | Value | Where it comes from | Safe to share? |
 |---|---|---|---|
-| 1 | **Supabase project URL** | Supabase → Project Settings → API | Yes |
-| 2 | **Publishable / anon key** | Settings → API Keys | Yes — it's designed to be public |
+| 1 | **Project URL** | Supabase → Settings → **Data API** | Yes |
+| 2 | **Publishable / anon key** | Supabase → Settings → **API Keys** | Yes — it's designed to be public |
 | 3 | ~~secret / service_role key~~ | Same page | **No. Never. It bypasses every security rule.** |
-| 4 | Vercel + GitHub login | — | **No** — you connect these yourself |
 
-The anon key being public is not an oversight: it identifies the app, not you. What actually protects the data is row-level security in the database, which is already written in `supabase/schema.sql`.
+The anon key being public is not an oversight: it identifies the app, not you. What actually protects the data is row-level security in the database, written in `supabase/schema.sql`.
+
+**Check the URL character by character.** It reads `https://<project-ref>.supabase.co`, and the ref is exactly **20 lowercase characters**. A hand-typed copy that drops one produces a hostname that does not exist, and the app will say so on boot rather than failing obscurely. Use the dashboard's copy button.
 
 ---
 
@@ -53,10 +54,11 @@ That one file creates the tables, the security rules, the save function, and the
 ## Step 3 — Turn on email sign-in
 
 1. **Authentication** → **Providers** → **Email**.
-2. Make sure it's enabled. Turn **Confirm email** on.
-3. **Authentication** → **URL Configuration** → set **Site URL** to your Vercel address once you have it (Step 5), and add it to **Redirect URLs** too.
+2. Make sure **Enable Email provider** is on, along with **Allow new user signups**.
 
-> Supabase's built-in email sender is rate-limited to a handful per hour. That's fine for you and Andrew. If it ever starts throttling, the fix is plugging in a real sender (Resend, Postmark) under Authentication → Emails.
+URL configuration comes later, in Step 6 — it needs the Vercel address, which does not exist yet. Doing it now is the mistake that sends the first sign-in link to `localhost:3000`.
+
+> Supabase's built-in sender is rate-limited to a handful of emails per hour and lands in spam easily on a new project. Fine for two people; check junk mail if the first one seems missing. If it starts throttling, plug in a real sender (Resend, Postmark) under Authentication → Emails.
 
 ## Step 4 — Get your two values
 
@@ -84,19 +86,37 @@ Send me those two and I'll fill in `.env.local` for local development.
    | `VITE_SUPABASE_ANON_KEY` | your anon key |
 
    Tick all three environments (Production, Preview, Development).
-5. **Deploy.** You get a URL like `daytime-xyz.vercel.app`.
-6. Go back to Supabase → Authentication → URL Configuration and put that URL in **Site URL** and **Redirect URLs**. Sign-in links won't work until you do.
+5. **Deploy.** You get a **production** URL like `daytime-xyz.vercel.app`.
 
-## Step 6 — First sign-in
+Changing an environment variable later does **not** rebuild on its own — redeploy after any change, or the old value stays baked into the bundle.
 
-1. Open your Vercel URL. You'll get a sign-in screen.
-2. Enter your email, tap **Send link**, open the email, tap the link.
+## Step 6 — Point Supabase back at the deployment
+
+This is the step that has to come after deploying, and skipping it is what breaks the first sign-in.
+
+**Supabase → Authentication → URL Configuration:**
+
+- **Site URL** → the **production** Vercel URL (the stable one, no random hash in it).
+- **Redirect URLs** → add that same URL with a wildcard: `https://daytime-xyz.vercel.app/**`
+
+Optionally add `https://*.vercel.app/**` so preview deployments work too.
+
+Why it matters: the app asks Supabase to send you back to whatever URL you signed in from. Supabase only honours that if it matches the allow-list — otherwise it silently substitutes the Site URL. Left at its default, that is `http://localhost:3000`, and the emailed link dead-ends at a page that does not exist.
+
+**Use the production URL, not Vercel's Preview button.** Preview URLs change per deployment, and on some plans sit behind Vercel's Deployment Protection wall.
+
+## Step 7 — First sign-in
+
+1. Open the production URL. You'll get a sign-in screen.
+2. Enter your email, tap **Send link**, open the email, tap the link. Links are single-use — request a fresh one if you have clicked it before.
 3. The app opens and creates your workspace automatically.
 4. Tap the round button in the top-right corner → **Invite** → enter Andrew's email.
 
 Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first.
 
-## Step 7 — Put it on your phone
+Note: on first cloud sign-in, whatever is already in that browser's local storage becomes the starting document rather than being wiped. Sign in first from the browser whose data you want to keep.
+
+## Step 8 — Put it on your phone
 
 Open the Vercel URL in Safari → Share → **Add to Home Screen**. It runs full-screen with no browser chrome, and it's the same workspace as your laptop.
 
@@ -131,13 +151,19 @@ One thing to know: **Supabase pauses free projects after a week of inactivity.**
 
 ## Troubleshooting
 
-**"Can't reach the workspace"** — the schema didn't run. Redo Step 2 and check for a red error in the SQL editor.
+The app translates the common database failures into plain sentences rather than error codes, so start by reading what the screen says. These four are the ones actually hit during setup:
 
-**Sign-in link goes to localhost** — Site URL in Supabase still points at localhost. Step 5, item 6.
+**Sign-in link dead-ends at "site cannot be reached"** — the link went to `localhost:3000`. Supabase's Site URL was never pointed at the deployment, so it fell back to its default. Step 6. Request a fresh link afterwards; the old one is spent.
 
-**Signed in, but no data and no error** — you're in a fresh workspace. If your documents were in a different browser, they're still in that browser's local storage; tell me and I'll add an import.
+**No sign-in email at all** — check spam first; Supabase's default sender is filtered aggressively on new projects. Then confirm **Authentication → Providers → Email** is enabled with signups allowed. **Authentication → Logs** shows what happened to each attempt and beats guessing.
 
-**Edits don't appear on the other device** — realtime isn't on for the table. Re-run the last two lines of `schema.sql`.
+**"The project ref … is 18 characters, but Supabase refs are 20"** — the URL lost a character in copying. Re-copy it from Settings → Data API with the copy button.
+
+**"The database is missing its setup"** — `schema.sql` never ran, or ran against a different project. Redo Step 2 and watch for a red error in the SQL editor.
+
+**"The API key was rejected"** — the key in Vercel doesn't match Supabase, or it was changed without redeploying. Env var changes need a redeploy to take effect.
+
+**Edits don't appear on the other device** — realtime isn't on for the table. Re-run `schema.sql`; it's safe to run again.
 
 ---
 
