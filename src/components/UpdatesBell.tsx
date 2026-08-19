@@ -109,10 +109,13 @@ export default function UpdatesBell() {
                 else openTask(c.id);
               }}
             >
-              {/* Day only in the column — adding the clock time wraps it onto
-                  two lines on a phone and squeezes the title that matters. */}
-              <span className="agenda__when" title={formatTime(new Date(c.at))}>
-                {formatShortDay(new Date(c.at))}
+              {/* Both, stacked. "Yesterday" is rarely the question in a feed of
+                  someone else's work — knowing it landed at 7am and not after
+                  you last looked is the point, and a tooltip is unreachable on
+                  a phone, which is where this is mostly read. */}
+              <span className="agenda__when">
+                <span>{formatShortDay(new Date(c.at))}</span>
+                <span className="when__clock">{formatTime(new Date(c.at))}</span>
               </span>
               <span className="agenda__title">{c.title}</span>
               <span className="agenda__where">

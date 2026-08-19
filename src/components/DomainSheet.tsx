@@ -203,8 +203,10 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
                 onClick={() => openEvent(ev.id)}
               >
                 <span className="event-row__when">
-                  {formatShortDay(new Date(ev.start))}
-                  {!ev.allDay && ` · ${formatTime(new Date(ev.start))}`}
+                  <span>{formatShortDay(new Date(ev.start))}</span>
+                  {!ev.allDay && (
+                    <span className="when__clock">{formatTime(new Date(ev.start))}</span>
+                  )}
                 </span>
                 <span className="event-row__title">{ev.title}</span>
               </button>
@@ -242,8 +244,10 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
                 onClick={() => openEvent(ev.id)}
               >
                 <span className="event-row__when">
-                  {ev.recurrence === 'weekdays' ? 'Weekdays' : 'Daily'}
-                  {!ev.allDay && ` · ${formatTime(new Date(ev.start))}`}
+                  <span>{ev.recurrence === 'weekdays' ? 'Weekdays' : 'Daily'}</span>
+                  {!ev.allDay && (
+                    <span className="when__clock">{formatTime(new Date(ev.start))}</span>
+                  )}
                 </span>
                 <span className="event-row__title">{ev.title}</span>
               </button>
