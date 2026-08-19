@@ -80,11 +80,13 @@ That one file creates the tables, the security rules, the save function, and the
 3. **Templates** → **Magic Link** → **Source** is now editable. Replace the whole body with:
 
    ```html
-   <h2>Your Daytime sign-in code</h2>
-   <p>Enter this code in the app:</p>
-   <p style="font-size: 28px; letter-spacing: 6px;"><strong>{{ .Token }}</strong></p>
-   <p>If you didn't ask for this, ignore it.</p>
+   <h2>Daytime</h2>
+   <p>Your code is:</p>
+   <p style="font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: 2px; -webkit-user-select: all; user-select: all;">{{ .Token }}</p>
+   <p>Enter it in the app. If you didn't ask for this, ignore it.</p>
    ```
+
+   The wording and spacing here are load-bearing, not decoration. `Your code is:` immediately before the digits is the phrasing iOS and Android look for when they offer a one-time code above the keyboard — the app's input already advertises itself as a one-time-code field, so on a phone the code can usually be filled with a single tap and never copied at all. Tight letter-spacing keeps a double-tap selecting the whole number as one word instead of splitting it, and `user-select: all` makes a single tap select the lot in mail clients that honour it.
 
 `{{ .Token }}` is the code. `{{ .ConfirmationURL }}` is the link — and it is deliberately gone.
 
@@ -192,6 +194,8 @@ One thing to know: **Supabase pauses free projects after a week of inactivity.**
 The app translates the common database failures into plain sentences rather than error codes, so start by reading what the screen says. These four are the ones actually hit during setup:
 
 **The email has a link but no code** — the Magic Link template was never changed, so it is still Supabase's stock link-only mail. Step 3, the template section. Nothing in the app can work around this: if `{{ .Token }}` isn't in the template, the code isn't in the message.
+
+**The code is longer or shorter than you expect** — fine, the app takes anything from 6 to 10 digits, which is the range Supabase allows. The length is **Authentication → Sign In / Providers → Email → Email OTP Length** if you want to change it; nothing in the app needs to match it.
 
 **"That sign-in link didn't work"** — you tapped a link instead of typing a code. Links are single-use and are often spent before you reach them, by a scanner or a preview fetch. Once the template is fixed there is no link to tap; ignore any older mail still sitting in the inbox.
 

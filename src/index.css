@@ -1059,17 +1059,18 @@ button {
 }
 
 .field--code {
-  /* Six wide-spaced characters want more room than the base .field's
-     130px floor — without this the Verify button gets squeezed in the same
-     row on a narrow phone. */
-  min-width: 160px;
+  /* The code can be anywhere from 6 to 10 digits depending on the Supabase
+     project, so this is sized for the longest one: at 10 digits the tracking
+     has to stay tight enough that the Verify button keeps its place in the
+     row on a 390px phone. */
+  min-width: 150px;
   font-variant-numeric: tabular-nums;
-  font-size: 22px;
-  letter-spacing: 0.4em;
+  font-size: 19px;
+  letter-spacing: 0.2em;
   text-align: center;
   /* Nudges the placeholder's centring to match the typed digits, which sit
      slightly left of true-centre once tabular figures are spaced this wide. */
-  padding-left: 0.4em;
+  padding-left: 0.2em;
 }
 
 .pill {

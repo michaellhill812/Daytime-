@@ -4,6 +4,16 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 type Phase = 'email' | 'sending' | 'code' | 'verifying';
 
 /**
+ * How long the emailed code is, is a property of the Supabase project — its
+ * "Email OTP Length" setting, anywhere from 6 to 10 digits — and nothing the
+ * client can read at runtime. Hardcoding 6 here meant an 8-digit project had
+ * its codes silently truncated to the first six, which then always failed.
+ * So: accept the whole range, and let the server be the judge of the value.
+ */
+const MIN_CODE = 6;
+const MAX_CODE = 10;
+
+/**
  * Supabase appends `error`/`error_description` to the redirect when a tapped
  * link fails server-side — expired, or already used. Read it once and strip
  * it, or a stale link left in someone's inbox reads as a silent bounce back to
@@ -86,7 +96,7 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
 
   const verify = async () => {
     const token = code.trim();
-    if (token.length < 6) return;
+    if (token.length < MIN_CODE) return;
 
     setError('');
     setPhase('verifying');
@@ -135,8 +145,8 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
         {onCode ? (
           <>
             <p className="gate__text">
-              Code sent to <strong>{email.trim()}</strong>. Enter it below — it's the 6-digit number
-              in the email, not the link.
+              Code sent to <strong>{email.trim()}</strong>. Enter it below — it's the number in the
+              email, not the link.
             </p>
             <div className="gate__row">
               <input
@@ -144,11 +154,11 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
                 className="field field--code"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                placeholder="123456"
+                placeholder="Code"
                 value={code}
                 onChange={(e) => {
                   setError('');
-                  setCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                  setCode(e.target.value.replace(/\D/g, '').slice(0, MAX_CODE));
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') void verify();
@@ -158,7 +168,7 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
                 type="button"
                 className="btn btn--primary"
                 onClick={() => void verify()}
-                disabled={code.trim().length < 6 || phase === 'verifying'}
+                disabled={code.trim().length < MIN_CODE || phase === 'verifying'}
               >
                 {phase === 'verifying' ? 'Checking…' : 'Verify'}
               </button>
