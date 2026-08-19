@@ -11,13 +11,7 @@ import { formatTime } from '../lib/date';
  * it — a task can be ticked off, an event can't, so the checkbox is the one
  * asymmetry rather than a whole separate list.
  */
-export default function AgendaRow({
-  item,
-  showTime = true,
-}: {
-  item: AgendaItem;
-  showTime?: boolean;
-}) {
+export default function AgendaRow({ item }: { item: AgendaItem }) {
   const state = useDaytimeState();
   const store = useStore();
   const { openEvent, openTask } = usePeek();
@@ -40,7 +34,7 @@ export default function AgendaRow({
       className={`agenda${item.done ? ' agenda--done' : ''}`}
       style={{ '--row-accent': accent } as React.CSSProperties}
     >
-      {showTime && <span className="agenda__when">{when}</span>}
+      <span className="agenda__when">{when}</span>
 
       {isTask ? (
         <button

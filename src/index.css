@@ -174,9 +174,11 @@ button {
   stroke-linecap: round;
 }
 
+/* No stroke-width here on purpose: the width comes from the per-layer attribute
+   in Wheel.tsx, and a CSS declaration would override every one of them to the
+   same value — CSS wins over SVG presentation attributes. */
 .wheel__fill {
   fill: none;
-  stroke-width: 9;
   stroke-linecap: round;
   transition: d 600ms var(--ease);
 }

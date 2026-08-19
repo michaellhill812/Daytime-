@@ -17,6 +17,17 @@ const LABEL_R = 186;
 const HUB_R = 64;
 const GAP_DEG = 5; // breathing room between ring segments
 
+/**
+ * The lit arc, widest and faintest first. Three concentric strokes read as a
+ * bloom around the core without a blur filter — and unlike a filter, they
+ * follow the rim's curve exactly, because they are the same arc.
+ */
+const FILL_LAYERS = [
+  { width: 15, opacity: 0.12 },
+  { width: 11.5, opacity: 0.24 },
+  { width: 9, opacity: 1 },
+];
+
 interface WheelProps {
   segments: RingSegment[];
   focusCount: number;
@@ -47,13 +58,6 @@ export default function Wheel({
           <stop offset="0%" stopColor="rgba(255,255,255,0.10)" />
           <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </radialGradient>
-        <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
 
       {/* Continuous hairline so the rim still reads as a ring when domains are quiet */}
@@ -99,14 +103,23 @@ export default function Wheel({
 
             <path d={arcPath(C, C, RING_R, start, end)} className="wheel__track" />
 
-            {seg.completion > 0.001 && (
-              <path
-                d={arcPath(C, C, RING_R, angle - reach, angle + reach)}
-                className="wheel__fill"
-                stroke={seg.color}
-                filter="url(#softGlow)"
-              />
-            )}
+            {/* The glow is drawn as wider copies of the same arc rather than a
+                blur filter. A filter's region is measured from the path's
+                bounding box, and an arc near the top of the circle is almost
+                flat — so the box was a sliver, and the blur got clipped into a
+                rectangle sitting visibly across the curve. Concentric strokes
+                can only ever be the shape of the arc itself. */}
+            {seg.completion > 0.001 &&
+              FILL_LAYERS.map((layer) => (
+                <path
+                  key={layer.width}
+                  d={arcPath(C, C, RING_R, angle - reach, angle + reach)}
+                  className="wheel__fill"
+                  stroke={seg.color}
+                  strokeWidth={layer.width}
+                  opacity={layer.opacity}
+                />
+              ))}
 
             <line
               x1={inner.x}

@@ -7,7 +7,7 @@ import {
   domainById,
   eventsForTask,
 } from '../store/selectors';
-import { dueLabel, formatTime, toTimeInput } from '../lib/date';
+import { dueLabel } from '../lib/date';
 import type { Task } from '../types';
 
 interface TaskRowProps {
@@ -15,36 +15,19 @@ interface TaskRowProps {
   now: Date;
   /** Show which domain the task belongs to — needed in mixed lists, noise in a domain view. */
   showDomain?: boolean;
-  /**
-   * Show the clock time rather than the relative day. In a list that is already
-   * one specific day, "Tomorrow" says nothing the heading hasn't — the hour is
-   * the only part left worth reading.
-   */
-  showTime?: boolean;
   onOpenDoc?: (docId: string) => void;
   onOpenEvent?: (eventId: string) => void;
 }
 
 /**
- * A deadline set as a date with no time is stored at 23:59 — the end of that
- * day. Printing "11:59 PM" back would claim a precision nobody chose, so that
- * one minute reads as what it means.
- */
-function dueClock(due: string): string {
-  // An empty time input is exactly what `toTimeInput` reports for the
-  // end-of-day minute, so the two stay in step without repeating the number.
-  return toTimeInput(due) === '' ? 'End of day' : formatTime(new Date(due));
-}
-
-/**
- * The single task presentation used by all three views, so a task looks the
- * same wherever you meet it — and carries its links to the Wall and World with it.
+ * How a task reads on the Wheel: relative to now, because the Wheel is not
+ * about any one day. World shows the same task through AgendaRow instead,
+ * where the day is already established and the clock time is what's left.
  */
 export default function TaskRow({
   task,
   now,
   showDomain = false,
-  showTime = false,
   onOpenDoc,
   onOpenEvent,
 }: TaskRowProps) {
@@ -97,7 +80,7 @@ export default function TaskRow({
           )}
           {task.due && (
             <span className={`task__due${overdue ? ' task__due--late' : ''}`}>
-              {showTime ? dueClock(task.due) : dueLabel(task.due, now)}
+              {dueLabel(task.due, now)}
             </span>
           )}
           {!task.due && !task.done && <span className="task__due task__due--none">Someday</span>}
