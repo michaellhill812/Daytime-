@@ -147,11 +147,25 @@ begin
   delete from public.workspace_invites
   where lower(email) = lower(v_email);
 
-  -- Prefer a workspace they already belong to.
+  -- Pick the workspace they belong to, preferring a shared one.
+  --
+  -- Signing in creates a workspace for anyone who has none, so someone who
+  -- opens the app before their invitation arrives ends up owning an empty
+  -- copy. Being added to a real workspace afterwards then left them stranded
+  -- in that copy, because ownership used to win the tie — they saw a working
+  -- app full of seed data and no sign that it was the wrong room, which reads
+  -- as sync being broken rather than as a workspace mix-up.
+  --
+  -- Member count settles it instead: a room with other people in it is the one
+  -- you meant. Ownership and age only break ties between equals, so a genuine
+  -- solo user is unaffected.
   select m.workspace_id into v_ws
   from public.workspace_members m
   where m.user_id = v_user
-  order by (m.role = 'owner') desc, m.created_at asc
+  order by
+    (select count(*) from public.workspace_members m2 where m2.workspace_id = m.workspace_id) desc,
+    (m.role = 'owner') desc,
+    m.created_at asc
   limit 1;
 
   if v_ws is not null then
