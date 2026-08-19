@@ -94,9 +94,19 @@ Leaving the link in place is not merely untidy. That link **is** the credential:
 
 URL configuration comes later, in Step 6 — it needs the Vercel address, which does not exist yet. Doing it now is the mistake that sends the first sign-in mail pointing at `localhost:3000`.
 
-> **The sandbox sender only reaches you.** `onboarding@resend.dev` is Resend's shared testing address, and it delivers only to the email you signed up to Resend with. That's enough to sign yourself in, but the invite in Step 7 will bounce for anyone else. To send to a second person, verify a domain in Resend (**Domains → Add Domain**, then add the DNS records it lists) and change the Sender email in Supabase to an address on it — `daytime@yourdomain.com`. Nothing else in the SMTP settings changes.
->
-> Mail from the sandbox address also lands in spam more readily than mail from your own domain — check junk on the first send. Resend's free tier (100/day, 3,000/month) is well past what two people signing in occasionally will use.
+> **The sandbox sender only reaches you.** `onboarding@resend.dev` is Resend's shared testing address, and it delivers only to the email you signed up to Resend with. That is enough to sign yourself in — and it is why the invite in Step 7 needs the section below before it will reach anybody else. Mail from it also lands in spam more readily than mail from a domain of your own, so check junk on the first send.
+
+### Sending to a second person
+
+The sandbox sender can't do it, and Resend's own answer — verify a domain — means owning one. Any of these lift the restriction without a domain. All three are pure configuration; none of them touch the app.
+
+**Gmail's SMTP.** No new account, and codes arrive from an address people recognise. Requires 2-Step Verification on the Google account, because that is what unlocks App Passwords: create one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords), then in **SMTP Settings** use host `smtp.gmail.com`, port `465`, username *and* Sender email both set to that Gmail address, password the 16-character App Password. The sender has to match the account — Gmail rejects a mismatched From. The cap is around 500 messages a day.
+
+**Brevo, Mailjet, or SendGrid.** All three offer *single sender verification*: you verify one address you already own instead of a whole domain, then send to anyone. Brevo is the most generous of them at 300/day — sign up, verify your address, and use `smtp-relay.brevo.com` on port `587` with the SMTP key it gives you.
+
+**A domain, if you ever get one.** Still the sturdiest answer, and the only one that survives a provider changing its free tier. Verify it in Resend under **Domains → Add Domain**, add the DNS records it lists at your registrar, and change the Sender email in Supabase to an address on it. Nothing else in the SMTP settings changes.
+
+> Worth knowing: none of this applies to an OAuth provider. "Sign in with Google" sends no mail at all, so no sender limit can reach it — see the note at the end of Step 7.
 
 ## Step 4 — Get your two values
 
@@ -151,7 +161,9 @@ Why it matters: the app asks Supabase to send you back to whatever URL you signe
 4. The app opens and creates your workspace automatically.
 5. Tap the round button in the top-right corner → **Invite** → enter Andrew's email.
 
-Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first — but he can only receive his sign-in code once you've moved off Resend's sandbox sender onto a verified domain (see the note in Step 3). The invitation itself is stored in the database and keeps waiting regardless.
+Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first — but his code can only *reach* him once the sender can send to somebody other than you, which is what "Sending to a second person" in Step 3 is about. The invitation itself lives in the database and keeps waiting regardless, so inviting him early costs nothing.
+
+If email turns out to be more trouble than it's worth, **Authentication → Sign In / Providers** also carries Google. An OAuth sign-in sends no mail at all, so no sender restriction or rate limit applies to it — the trade is a Google Cloud OAuth client on your side and a sign-in button in the app on ours.
 
 Note: on first cloud sign-in, whatever is already in that browser's local storage becomes the starting document rather than being wiped. Sign in first from the browser whose data you want to keep.
 
@@ -181,7 +193,7 @@ Open the Vercel URL in Safari → Share → **Add to Home Screen**. It runs full
 |---|---|---|
 | Supabase | 500 MB database, 50k monthly users | Not in any realistic future for this |
 | Vercel | 100 GB bandwidth/month | Same |
-| Resend | 100 emails/day, 3,000/month | Same |
+| Whichever sender you settled on | Resend 100/day · Gmail ~500/day · Brevo 300/day | Same |
 
 Two people and a few hundred KB of notes. This stays free.
 
@@ -203,7 +215,9 @@ The app translates the common database failures into plain sentences rather than
 
 **Sign-in dead-ends at "site cannot be reached"** — an old link pointed at `localhost:3000`, because Supabase's Site URL was never aimed at the deployment. Step 6.
 
-**No sign-in email at all** — check spam first; a sandbox sender address like `onboarding@resend.dev` is filtered more aggressively than mail from your own domain. Then confirm **Authentication → Providers → Email** is enabled with signups allowed, and that custom SMTP is still on with the right Resend API key. **Authentication → Logs** shows what happened to each attempt and beats guessing.
+**No sign-in email at all** — check spam first; a sandbox sender address like `onboarding@resend.dev` is filtered more aggressively than mail from a domain of your own. Then confirm **Authentication → Providers → Email** is enabled with signups allowed, and that custom SMTP is still on with valid credentials. **Authentication → Logs** shows what happened to each attempt and beats guessing.
+
+**Mail arrives for you but never for the other person** — the sender can only reach its own account holder. That is the sandbox restriction, not a bug in the invite; see "Sending to a second person" in Step 3. The Logs will show the send being refused rather than delivered.
 
 **"Email rate limit exceeded"** — Supabase keeps its own default cap on top of whatever Resend allows, and it can still bite briefly right after switching on custom SMTP. It clears on its own within a few minutes. A wrong code doesn't consume it, so correct the digits rather than requesting a new mail.
 
