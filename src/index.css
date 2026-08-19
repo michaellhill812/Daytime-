@@ -1004,6 +1004,20 @@ button {
   min-width: 0;
 }
 
+.field--code {
+  /* Six wide-spaced characters want more room than the base .field's
+     130px floor — without this the Verify button gets squeezed in the same
+     row on a narrow phone. */
+  min-width: 160px;
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  letter-spacing: 0.4em;
+  text-align: center;
+  /* Nudges the placeholder's centring to match the typed digits, which sit
+     slightly left of true-centre once tabular figures are spaced this wide. */
+  padding-left: 0.4em;
+}
+
 .pill {
   padding: 7px 12px;
   border-radius: 999px;
@@ -1242,8 +1256,14 @@ button {
 .gate {
   position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
+  /* flex, not grid: place-items:center disables stretch, and a percentage
+     width on the card then resolves ambiguously in an auto-sized grid track
+     — Chromium sized it against the unpadded viewport, pushing the Verify
+     button off-screen on a phone. Flex resolves the same percentage against
+     the padded content box, unambiguously. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
   background: var(--ink);
 }
@@ -1362,8 +1382,10 @@ button {
 .boot {
   position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
+  /* See .gate — same grid/percentage-width pitfall, same fix. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
   background: var(--ink);
 }
