@@ -92,7 +92,9 @@ Leaving the link in place is not merely untidy. That link **is** the credential:
 
 URL configuration comes later, in Step 6 — it needs the Vercel address, which does not exist yet. Doing it now is the mistake that sends the first sign-in mail pointing at `localhost:3000`.
 
-> Mail from `onboarding@resend.dev` is a shared sandbox address, so it lands in spam more readily than mail from your own domain — check junk mail on the first send. Resend's free tier (100/day, 3,000/month) is well past what two people signing in occasionally will use.
+> **The sandbox sender only reaches you.** `onboarding@resend.dev` is Resend's shared testing address, and it delivers only to the email you signed up to Resend with. That's enough to sign yourself in, but the invite in Step 7 will bounce for anyone else. To send to a second person, verify a domain in Resend (**Domains → Add Domain**, then add the DNS records it lists) and change the Sender email in Supabase to an address on it — `daytime@yourdomain.com`. Nothing else in the SMTP settings changes.
+>
+> Mail from the sandbox address also lands in spam more readily than mail from your own domain — check junk on the first send. Resend's free tier (100/day, 3,000/month) is well past what two people signing in occasionally will use.
 
 ## Step 4 — Get your two values
 
@@ -147,7 +149,7 @@ Why it matters: the app asks Supabase to send you back to whatever URL you signe
 4. The app opens and creates your workspace automatically.
 5. Tap the round button in the top-right corner → **Invite** → enter Andrew's email.
 
-Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first.
+Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first — but he can only receive his sign-in code once you've moved off Resend's sandbox sender onto a verified domain (see the note in Step 3). The invitation itself is stored in the database and keeps waiting regardless.
 
 Note: on first cloud sign-in, whatever is already in that browser's local storage becomes the starting document rather than being wiped. Sign in first from the browser whose data you want to keep.
 
