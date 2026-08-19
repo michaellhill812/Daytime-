@@ -56,7 +56,24 @@ That one file creates the tables, the security rules, the save function, and the
 1. **Authentication** → **Providers** → **Email**.
 2. Make sure **Enable Email provider** is on, along with **Allow new user signups**.
 
-URL configuration comes later, in Step 6 — it needs the Vercel address, which does not exist yet. Doing it now is the mistake that sends the first sign-in link to `localhost:3000`.
+### Then change the email to send a code, not a link
+
+**This step is required.** The app asks for a typed 6-digit code, but Supabase's stock email contains only a link — so without this change the mail arrives with no code in it and there is nothing to type.
+
+**Authentication** → **Emails** (older dashboards: **Email Templates**) → the **Magic Link** tab. Replace the whole body with:
+
+```html
+<h2>Your Daytime sign-in code</h2>
+<p>Enter this code in the app:</p>
+<p style="font-size: 28px; letter-spacing: 6px;"><strong>{{ .Token }}</strong></p>
+<p>If you didn't ask for this, ignore it.</p>
+```
+
+`{{ .Token }}` is the code. `{{ .ConfirmationURL }}` is the link — and it is deliberately gone.
+
+Leaving the link in place is not merely untidy. That link **is** the credential: it carries a token that signs in whoever opens it, in any browser, on any device, with no code required. That is how magic links are specified to work, so anything that reaches the message — a forwarded mail, a shared inbox, a corporate scanner that opens links to check them — can sign in as you. Scanners consuming the link before you tap it is what broke sign-in on your phone in the first place. A typed code has nothing to open, and removing the link is what actually closes the hole.
+
+URL configuration comes later, in Step 6 — it needs the Vercel address, which does not exist yet. Doing it now is the mistake that sends the first sign-in mail pointing at `localhost:3000`.
 
 > Supabase's built-in sender is rate-limited to a handful of emails per hour and lands in spam easily on a new project. Fine for two people; check junk mail if the first one seems missing. If it starts throttling, plug in a real sender (Resend, Postmark) under Authentication → Emails.
 
@@ -108,9 +125,10 @@ Why it matters: the app asks Supabase to send you back to whatever URL you signe
 ## Step 7 — First sign-in
 
 1. Open the production URL. You'll get a sign-in screen.
-2. Enter your email, tap **Send link**, open the email, tap the link. Links are single-use — request a fresh one if you have clicked it before.
-3. The app opens and creates your workspace automatically.
-4. Tap the round button in the top-right corner → **Invite** → enter Andrew's email.
+2. Enter your email and tap **Send code**.
+3. Open the email, read the 6-digit code, type it back into the same tab, tap **Verify**. A mistyped digit costs nothing — the code stays live, so you can correct it without requesting another mail.
+4. The app opens and creates your workspace automatically.
+5. Tap the round button in the top-right corner → **Invite** → enter Andrew's email.
 
 Andrew can sign in whenever he likes; the invitation waits for him. He doesn't need an account first.
 
@@ -153,9 +171,17 @@ One thing to know: **Supabase pauses free projects after a week of inactivity.**
 
 The app translates the common database failures into plain sentences rather than error codes, so start by reading what the screen says. These four are the ones actually hit during setup:
 
-**Sign-in link dead-ends at "site cannot be reached"** — the link went to `localhost:3000`. Supabase's Site URL was never pointed at the deployment, so it fell back to its default. Step 6. Request a fresh link afterwards; the old one is spent.
+**The email has a link but no code** — the Magic Link template was never changed, so it is still Supabase's stock link-only mail. Step 3, the template section. Nothing in the app can work around this: if `{{ .Token }}` isn't in the template, the code isn't in the message.
+
+**"That sign-in link didn't work"** — you tapped a link instead of typing a code. Links are single-use and are often spent before you reach them, by a scanner or a preview fetch. Once the template is fixed there is no link to tap; ignore any older mail still sitting in the inbox.
+
+**A link signs you in from a different browser without any code** — expected, and the reason the link has to go. That token authenticates whoever opens it, wherever they open it. Remove `{{ .ConfirmationURL }}` from the template (Step 3) and the exposure goes with it.
+
+**Sign-in dead-ends at "site cannot be reached"** — an old link pointed at `localhost:3000`, because Supabase's Site URL was never aimed at the deployment. Step 6.
 
 **No sign-in email at all** — check spam first; Supabase's default sender is filtered aggressively on new projects. Then confirm **Authentication → Providers → Email** is enabled with signups allowed. **Authentication → Logs** shows what happened to each attempt and beats guessing.
+
+**"Email rate limit exceeded"** — Supabase's built-in sender allows only a few messages an hour. It clears on its own; a wrong code doesn't consume one, so correct the digits rather than requesting a new mail.
 
 **"The project ref … is 18 characters, but Supabase refs are 20"** — the URL lost a character in copying. Re-copy it from Settings → Data API with the copy button.
 

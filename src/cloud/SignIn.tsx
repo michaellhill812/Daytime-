@@ -90,22 +90,34 @@ export default function SignIn({ client }: { client: SupabaseClient }) {
 
     setError('');
     setPhase('verifying');
-    const { error: verifyError } = await client.auth.verifyOtp({
-      email: email.trim(),
-      token,
-      type: 'email',
-    });
+
+    // Supabase labels the token by what the address is: `email` for a first
+    // sign-up, `magiclink` for an address it already knows. The code in the
+    // mail looks identical either way, so rather than guess which side of that
+    // line an address falls on, try the common one and fall back. A wrong
+    // *type* is rejected without spending the token, so the retry is free —
+    // only a wrong *code* burns it.
+    const attempt = (type: 'email' | 'magiclink') =>
+      client.auth.verifyOtp({ email: email.trim(), token, type });
+
+    let { error: verifyError } = await attempt('email');
+    if (verifyError && /invalid|expired|token/i.test(verifyError.message)) {
+      const retry = await attempt('magiclink');
+      if (!retry.error) verifyError = null;
+    }
 
     if (verifyError) {
       // Stay on the code screen — a mistyped digit shouldn't cost a fresh
       // email and another bite out of the rate limit.
       setPhase('code');
+      // Supabase answers a mistyped code and a stale one with the same string
+      // ("Token has expired or is invalid"), so claiming to know which it was
+      // sends half of these people to request an email they didn't need — into
+      // a rate limit that then locks them out for an hour. Say both.
       setError(
-        /expired/i.test(verifyError.message)
-          ? 'That code has expired. Request a new one below.'
-          : /invalid|token/i.test(verifyError.message)
-            ? 'That code didn’t match — check for a typo, or request a new one.'
-            : verifyError.message,
+        /invalid|expired|token/i.test(verifyError.message)
+          ? 'That code didn’t work. Check the digits against the email — if it’s an old code, send a new one below.'
+          : verifyError.message,
       );
       requestAnimationFrame(() => codeRef.current?.focus());
       return;
