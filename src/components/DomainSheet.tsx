@@ -4,8 +4,8 @@ import Diagram from './Diagram';
 import TaskRow from './TaskRow';
 import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
-import { PRIORITY_COLOR, PRIORITY_LABEL, domainSnapshot } from '../store/selectors';
-import { addDays, formatShortDay, formatTime, startOfDay } from '../lib/date';
+import { NEXT_PRIORITY, PRIORITY_COLOR, PRIORITY_LABEL, domainSnapshot } from '../store/selectors';
+import { formatShortDay, formatTime, toDateKey } from '../lib/date';
 import type { Goal, Priority } from '../types';
 
 interface DomainSheetProps {
@@ -13,8 +13,6 @@ interface DomainSheetProps {
   onClose: () => void;
   now: Date;
 }
-
-const NEXT_PRIORITY: Record<Priority, Priority> = { 3: 2, 2: 1, 1: 3 };
 
 function GoalLine({ goal }: { goal: Goal }) {
   return (
@@ -42,7 +40,10 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
 
   const [draft, setDraft] = useState('');
   const [priority, setPriority] = useState<Priority>(2);
-  const [dueChoice, setDueChoice] = useState<'none' | 'today' | 'tomorrow'>('none');
+  // An empty date is "someday". A date with no time is a deadline on that day
+  // rather than at a moment in it, so it lands at end of day.
+  const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('');
   const [showDone, setShowDone] = useState(false);
 
   const snap = useMemo(
@@ -57,15 +58,19 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
     if (!title) return;
 
     let due: string | undefined;
-    if (dueChoice !== 'none') {
-      const base = startOfDay(dueChoice === 'today' ? now : addDays(now, 1));
-      base.setHours(18, 0, 0, 0);
-      due = base.toISOString();
+    if (dueDate) {
+      // Built from parts rather than parsed from a string: `new Date('2026-03-04')`
+      // is UTC midnight, which is the previous day for anyone west of Greenwich.
+      const [y, mo, d] = dueDate.split('-').map(Number);
+      const [h, mi] = dueTime ? dueTime.split(':').map(Number) : [23, 59];
+      const at = new Date(y ?? 1970, (mo ?? 1) - 1, d ?? 1, h ?? 23, mi ?? 59, 0, 0);
+      due = at.toISOString();
     }
 
     store.addTask({ domainId: snap.domain.id, title, priority, ...(due ? { due } : {}) });
     setDraft('');
-    setDueChoice('none');
+    setDueDate('');
+    setDueTime('');
   };
 
   const { ring } = snap;
@@ -116,15 +121,31 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
         >
           {PRIORITY_LABEL[priority]}
         </button>
+        {/* A date puts the task on the calendar; leaving it blank keeps it a
+            someday item that still counts on the Wheel. */}
+        <input
+          className="field field--date"
+          type="date"
+          value={dueDate}
+          aria-label="Due date"
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+        <input
+          className="field field--time"
+          type="time"
+          value={dueTime}
+          aria-label="Due time"
+          disabled={!dueDate}
+          onChange={(e) => setDueTime(e.target.value)}
+        />
         <button
           type="button"
           className="pill"
-          onClick={() =>
-            setDueChoice((c) => (c === 'none' ? 'today' : c === 'today' ? 'tomorrow' : 'none'))
-          }
-          title="Cycle deadline"
+          onClick={() => setDueDate(toDateKey(now))}
+          disabled={!!dueDate}
+          title="Due today"
         >
-          {dueChoice === 'none' ? 'Someday' : dueChoice === 'today' ? 'Today' : 'Tomorrow'}
+          Today
         </button>
         <button
           type="button"

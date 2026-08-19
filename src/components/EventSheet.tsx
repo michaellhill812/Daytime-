@@ -1,14 +1,22 @@
 import Sheet from './Sheet';
 import TaskRow from './TaskRow';
 import { useDaytimeState, useStore } from '../store/context';
-import { domainById, tasksForEvent } from '../store/selectors';
+import {
+  NEXT_PRIORITY,
+  PRIORITY_COLOR,
+  PRIORITY_LABEL,
+  domainById,
+  tasksForEvent,
+} from '../store/selectors';
 import { useNow } from '../hooks/useNow';
 import type { CalEvent } from '../types';
 import { formatDayLabel, formatTime } from '../lib/date';
 
 function when(event: CalEvent): string {
   const start = new Date(event.start);
-  const span = event.end ? `${formatTime(start)}–${formatTime(new Date(event.end))}` : formatTime(start);
+  const span = event.end
+    ? `${formatTime(start)}–${formatTime(new Date(event.end))}`
+    : formatTime(start);
 
   if (event.recurrence) {
     const every = event.recurrence === 'weekdays' ? 'Weekdays' : 'Every day';
@@ -64,6 +72,42 @@ export default function EventSheet({
           {domain.name}
         </p>
       )}
+
+      <div className="quick-add">
+        <select
+          className="field field--select"
+          aria-label="Spoke"
+          value={event.domainId ?? ''}
+          onChange={(e) => {
+            const next = e.target.value;
+            store.updateEvent(event.id, next ? { domainId: next } : { domainId: undefined });
+          }}
+        >
+          <option value="">No spoke</option>
+          {state.domains.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="pill"
+          style={
+            event.priority
+              ? ({ '--pill': PRIORITY_COLOR[event.priority] } as React.CSSProperties)
+              : undefined
+          }
+          title="Cycle priority"
+          onClick={() =>
+            store.updateEvent(event.id, {
+              priority: event.priority ? NEXT_PRIORITY[event.priority] : 2,
+            })
+          }
+        >
+          {event.priority ? PRIORITY_LABEL[event.priority] : 'No priority'}
+        </button>
+      </div>
 
       {linked.length > 0 && (
         <section className="block">

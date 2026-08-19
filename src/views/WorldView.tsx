@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import TaskRow from '../components/TaskRow';
 import { usePeek } from '../components/PeekProvider';
+import type { Priority } from '../types';
 import { useDaytimeState, useStore } from '../store/context';
-import { dayNote, domainById, eventsOnDay, tasksOnDay } from '../store/selectors';
+import {
+  NEXT_PRIORITY,
+  PRIORITY_COLOR,
+  PRIORITY_LABEL,
+  dayNote,
+  docCreatedAt,
+  docsAddedOn,
+  domainById,
+  eventsOnDay,
+  tasksOnDay,
+} from '../store/selectors';
 import { useNow } from '../hooks/useNow';
 import {
   addMonths,
@@ -25,7 +36,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
   const state = useDaytimeState();
   const store = useStore();
   const now = useNow();
-  const { openEvent } = usePeek();
+  const { openDoc, openEvent } = usePeek();
 
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [selected, setSelected] = useState(() => startOfDay(new Date()));
@@ -33,6 +44,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
   const [draftTitle, setDraftTitle] = useState('');
   const [draftTime, setDraftTime] = useState('09:00');
   const [draftDomain, setDraftDomain] = useState('');
+  const [draftPriority, setDraftPriority] = useState<Priority>(2);
 
   // Coming back to World should feel like arriving at now, not where you left off.
   useEffect(() => {
@@ -47,6 +59,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
   const grid = useMemo(() => monthGrid(anchor), [anchor]);
   const dayEvents = useMemo(() => eventsOnDay(state, selected), [state, selected]);
   const dayTasks = useMemo(() => tasksOnDay(state, selected), [state, selected]);
+  const dayDocs = useMemo(() => docsAddedOn(state, selected), [state, selected]);
   const note = dayNote(state, selected);
 
   const submitEvent = () => {
@@ -60,6 +73,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
     store.addEvent({
       title,
       start: start.toISOString(),
+      priority: draftPriority,
       ...(draftDomain ? { domainId: draftDomain } : {}),
     });
     setDraftTitle('');
@@ -109,6 +123,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
           const events = eventsOnDay(state, day).filter((e) => !e.recurrence);
           const dueTasks = tasksOnDay(state, day);
           const openDue = dueTasks.filter((t) => !t.done);
+          const wallAdds = docsAddedOn(state, day).length;
 
           return (
             <button
@@ -137,6 +152,9 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
                     }}
                   />
                 ))}
+                {/* A hollow mark, so a day that only gained a document reads as
+                    a record of something rather than a demand for something. */}
+                {wallAdds > 0 && <span className="day__wall" aria-hidden />}
                 {openDue.length > 0 && <span className="day__due">{openDue.length}</span>}
               </span>
             </button>
@@ -184,6 +202,15 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
             </select>
             <button
               type="button"
+              className="pill"
+              style={{ '--pill': PRIORITY_COLOR[draftPriority] } as React.CSSProperties}
+              onClick={() => setDraftPriority(NEXT_PRIORITY[draftPriority])}
+              title="Cycle priority"
+            >
+              {PRIORITY_LABEL[draftPriority]}
+            </button>
+            <button
+              type="button"
               className="btn btn--primary"
               onClick={submitEvent}
               disabled={!draftTitle.trim()}
@@ -193,7 +220,7 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
           </div>
         )}
 
-        {dayEvents.length === 0 && dayTasks.length === 0 && !note && (
+        {dayEvents.length === 0 && dayTasks.length === 0 && dayDocs.length === 0 && !note && (
           <p className="empty">Nothing on this day.</p>
         )}
 
@@ -210,13 +237,22 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
                     className="event-row"
                     onClick={() => openEvent(ev.id)}
                     style={
-                      { '--row-accent': domain?.accent ?? 'rgba(255,255,255,0.3)' } as React.CSSProperties
+                      {
+                        '--row-accent': domain?.accent ?? 'rgba(255,255,255,0.3)',
+                      } as React.CSSProperties
                     }
                   >
                     <span className="event-row__when">
                       {ev.allDay ? 'all day' : formatTime(new Date(ev.start))}
                     </span>
                     <span className="event-row__title">{ev.title}</span>
+                    {ev.priority && (
+                      <span
+                        className="event-row__priority"
+                        style={{ background: PRIORITY_COLOR[ev.priority] }}
+                        title={`${PRIORITY_LABEL[ev.priority]} priority`}
+                      />
+                    )}
                     {ev.location && <span className="event-row__where">{ev.location}</span>}
                   </button>
                 );
@@ -230,8 +266,42 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
             <h3 className="block__title">Due</h3>
             <div className="list">
               {dayTasks.map((task) => (
-                <TaskRow key={task.id} task={task} now={now} showDomain />
+                <TaskRow key={task.id} task={task} now={now} showDomain showTime />
               ))}
+            </div>
+          </section>
+        )}
+
+        {dayDocs.length > 0 && (
+          <section className="block">
+            <h3 className="block__title">Added to the Wall</h3>
+            <div className="list">
+              {dayDocs.map((doc) => {
+                const domain = domainById(state, doc.domainId);
+                return (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    className="event-row"
+                    onClick={() => openDoc(doc.id)}
+                    style={
+                      {
+                        '--row-accent': domain?.accent ?? 'rgba(255,255,255,0.3)',
+                      } as React.CSSProperties
+                    }
+                  >
+                    <span className="event-row__when">
+                      {formatTime(new Date(docCreatedAt(doc)))}
+                    </span>
+                    <span className="event-row__title">{doc.title}</span>
+                    {domain && (
+                      <span className="event-row__where" style={{ color: domain.accent }}>
+                        {domain.name}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}

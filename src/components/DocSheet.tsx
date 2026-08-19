@@ -14,7 +14,13 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 /** Wall document detail, openable from any view. */
-export default function DocSheet({ docId, onClose }: { docId: string | null; onClose: () => void }) {
+export default function DocSheet({
+  docId,
+  onClose,
+}: {
+  docId: string | null;
+  onClose: () => void;
+}) {
   const state = useDaytimeState();
   const store = useStore();
   const now = useNow();
@@ -50,6 +56,30 @@ export default function DocSheet({ docId, onClose }: { docId: string | null; onC
           {doc.url}
         </a>
       )}
+
+      {/* Re-filing has to be possible here: documents pinned before the Wall
+          asked for a spoke have none, and this is the only place to give them one. */}
+      <div className="compose compose--inline">
+        <label className="compose__label" htmlFor="doc-domain">
+          Spoke
+        </label>
+        <select
+          id="doc-domain"
+          className="field field--select"
+          value={doc.domainId ?? ''}
+          onChange={(e) => {
+            const next = e.target.value;
+            store.updateDoc(doc.id, next ? { domainId: next } : { domainId: undefined });
+          }}
+        >
+          <option value="">No spoke</option>
+          {state.domains.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="row-actions">
         <button type="button" className="btn" onClick={() => store.toggleDocPin(doc.id)}>

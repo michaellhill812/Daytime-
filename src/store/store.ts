@@ -141,13 +141,20 @@ export class DaytimeStore {
 
   // ----------------------------------------------------------------- docs --
 
-  addDoc = (input: { title: string; domainId?: string; body?: string; kind?: Doc['kind'] }): Doc => {
+  addDoc = (input: {
+    title: string;
+    domainId?: string;
+    body?: string;
+    kind?: Doc['kind'];
+  }): Doc => {
+    const now = new Date().toISOString();
     const doc: Doc = {
       id: uid('doc'),
       title: input.title.trim(),
       kind: input.kind ?? 'note',
       pinned: false,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
+      createdAt: now,
       ...(input.domainId ? { domainId: input.domainId } : {}),
       ...(input.body ? { body: input.body } : {}),
     };
@@ -191,6 +198,7 @@ export class DaytimeStore {
     allDay?: boolean;
     domainId?: string;
     location?: string;
+    priority?: Priority;
   }): CalEvent => {
     const event: CalEvent = {
       id: uid('ev'),
@@ -200,6 +208,7 @@ export class DaytimeStore {
       ...(input.end ? { end: input.end } : {}),
       ...(input.domainId ? { domainId: input.domainId } : {}),
       ...(input.location ? { location: input.location } : {}),
+      ...(input.priority ? { priority: input.priority } : {}),
     };
     this.commit({ ...this.state, events: [...this.state.events, event] });
     return event;
@@ -229,7 +238,8 @@ export class DaytimeStore {
     const trimmed = body.trim();
 
     let dayNotes;
-    if (!existing) dayNotes = trimmed ? [...this.state.dayNotes, { date, body }] : this.state.dayNotes;
+    if (!existing)
+      dayNotes = trimmed ? [...this.state.dayNotes, { date, body }] : this.state.dayNotes;
     else if (!trimmed) dayNotes = this.state.dayNotes.filter((n) => n.date !== date);
     else dayNotes = this.state.dayNotes.map((n) => (n.date === date ? { ...n, body } : n));
 

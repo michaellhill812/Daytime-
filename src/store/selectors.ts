@@ -23,6 +23,9 @@ export const PRIORITY_LABEL: Record<Priority, string> = {
   1: 'Low',
 };
 
+/** The order a priority pill cycles through when tapped. */
+export const NEXT_PRIORITY: Record<Priority, Priority> = { 3: 2, 2: 1, 1: 3 };
+
 // ---------------------------------------------------------------- salience --
 
 /**
@@ -278,6 +281,27 @@ export function tasksOnDay(state: DaytimeState, day: Date): Task[] {
   return state.tasks
     .filter((t) => t.due && isSameDay(new Date(t.due), day))
     .sort((a, b) => a.due!.localeCompare(b.due!));
+}
+
+/**
+ * When a document went up on the Wall. `createdAt` was added after the first
+ * documents were written, so anything older reports the only timestamp it has —
+ * which for a document nobody has edited since is the same moment anyway.
+ */
+export function docCreatedAt(doc: Doc): string {
+  return doc.createdAt ?? doc.updatedAt;
+}
+
+/**
+ * Wall documents added on this day — how the Wall shows up in World, the same
+ * way `tasksOnDay` is how the Wheel does. Derived rather than written out as
+ * calendar rows: one document is one fact, and a stored copy would outlive the
+ * document it describes.
+ */
+export function docsAddedOn(state: DaytimeState, day: Date): Doc[] {
+  return state.docs
+    .filter((d) => isSameDay(new Date(docCreatedAt(d)), day))
+    .sort((a, b) => docCreatedAt(a).localeCompare(docCreatedAt(b)));
 }
 
 export function dayNote(state: DaytimeState, day: Date): string {

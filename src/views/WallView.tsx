@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import NewDocSheet from '../components/NewDocSheet';
 import { usePeek } from '../components/PeekProvider';
-import { useDaytimeState, useStore } from '../store/context';
+import { useDaytimeState } from '../store/context';
 import { domainById, tasksForDoc } from '../store/selectors';
 import { formatShortDay } from '../lib/date';
 import type { Doc, DocKind } from '../types';
@@ -19,9 +20,9 @@ const KIND_MARK: Record<DocKind, string> = {
  */
 export default function WallView({ active }: { active: boolean }) {
   const state = useDaytimeState();
-  const store = useStore();
   const { openDoc } = usePeek();
   const [filter, setFilter] = useState<string | null>(null);
+  const [composing, setComposing] = useState(false);
 
   const docs = useMemo(() => {
     const list = filter ? state.docs.filter((d) => d.domainId === filter) : state.docs;
@@ -30,13 +31,7 @@ export default function WallView({ active }: { active: boolean }) {
     );
   }, [state.docs, filter]);
 
-  const addDoc = () => {
-    const doc = store.addDoc({
-      title: 'Untitled',
-      ...(filter ? { domainId: filter } : {}),
-    });
-    openDoc(doc.id);
-  };
+  const addDoc = () => setComposing(true);
 
   return (
     <div className={`view view--wall${active ? ' is-active' : ''}`} aria-hidden={!active}>
@@ -87,6 +82,16 @@ export default function WallView({ active }: { active: boolean }) {
           <span>Pin something</span>
         </div>
       </div>
+
+      <NewDocSheet
+        open={composing}
+        onClose={() => setComposing(false)}
+        defaultDomainId={filter}
+        onCreated={(doc) => {
+          setComposing(false);
+          openDoc(doc.id);
+        }}
+      />
     </div>
   );
 }

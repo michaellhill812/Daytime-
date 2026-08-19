@@ -75,6 +75,12 @@ export interface Doc {
   /** Pinned docs sort to the front of the Wall. */
   pinned: boolean;
   updatedAt: string;
+  /**
+   * When the document was first put on the Wall — what World shows on the day
+   * it was added. Optional because documents written before this field existed
+   * don't have one; readers fall back to `updatedAt` via `docCreatedAt`.
+   */
+  createdAt?: string;
 }
 
 /** How an event repeats. Absent means it happens once. */
@@ -90,6 +96,8 @@ export interface CalEvent {
   end?: string;
   allDay: boolean;
   location?: string;
+  /** Optional — an event is a commitment first; how much it matters is extra. */
+  priority?: Priority;
   /**
    * Repeats are stored as one row and expanded when a day is read, rather than
    * written out as hundreds of copies. Editing the rule then stays a single
