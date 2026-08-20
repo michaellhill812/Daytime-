@@ -1,14 +1,16 @@
+import { useMemo, useState } from 'react';
 import Sheet from './Sheet';
 import { useDaytimeState, useStore } from '../store/context';
 import {
   NEXT_PRIORITY,
   PRIORITY_COLOR,
   PRIORITY_LABEL,
-  docsForTask,
   domainById,
   eventsForTask,
+  searchDocs,
 } from '../store/selectors';
 import { fromDateTimeInputs, toDateKey, toTimeInput } from '../lib/date';
+import type { Doc } from '../types';
 
 /**
  * Task detail, openable from anywhere a task appears.
@@ -29,11 +31,31 @@ export default function TaskSheet({
   const state = useDaytimeState();
   const store = useStore();
 
-  const task = state.tasks.find((t) => t.id === taskId);
+  const task = state.tasks.find((t) => t.id === taskId) ?? null;
+
+  // Every hook runs before the missing-task guard below. React matches hooks
+  // by call order, so returning early above one would break the next render
+  // that does find a task.
+  const [docQuery, setDocQuery] = useState('');
+
+  /**
+   * What to offer, in the order it is most likely wanted: what is already
+   * attached, then anything filed under this task's own spoke, then the rest
+   * alphabetically. A career task should find the career documents without
+   * anyone having to search for them.
+   */
+  const pickable = useMemo(() => {
+    if (!task) return [];
+    const rank = (d: Doc) =>
+      (task.docIds.includes(d.id) ? 0 : 2) + (d.domainId === task.domainId ? 0 : 1);
+    return [...searchDocs(state, docQuery)].sort(
+      (a, b) => rank(a) - rank(b) || a.title.localeCompare(b.title),
+    );
+  }, [state, docQuery, task]);
+
   if (!task) return null;
 
   const domain = domainById(state, task.domainId);
-  const docs = docsForTask(state, task);
   const events = eventsForTask(state, task);
 
   const dueDate = task.due ? toDateKey(new Date(task.due)) : '';
@@ -137,15 +159,55 @@ export default function TaskSheet({
         />
       </div>
 
-      {(docs.length > 0 || events.length > 0) && (
-        <section className="block">
-          <h3 className="block__title">Linked</h3>
+      {/* Attaching lives here rather than on the Wall because a document
+          belongs to many tasks but a task is what you are actually working on
+          — you reach for the reference from the job, not the other way round.
+          Toggling writes straight through, so there is nothing to save. */}
+      <section className="block">
+        <h3 className="block__title">
+          From the Wall
+          {task.docIds.length > 0 && <span className="block__count">{task.docIds.length}</span>}
+        </h3>
+
+        {state.docs.length > 8 && (
+          <input
+            className="field field--search"
+            type="search"
+            value={docQuery}
+            placeholder="Filter documents…"
+            aria-label="Filter documents"
+            onChange={(e) => setDocQuery(e.target.value)}
+            style={{ marginBottom: 10 }}
+          />
+        )}
+
+        {pickable.length === 0 ? (
+          <p className="empty">Nothing on the Wall matches.</p>
+        ) : (
           <div className="chips">
-            {docs.map((doc) => (
-              <span key={doc.id} className="chip">
-                {doc.title}
-              </span>
-            ))}
+            {pickable.map((doc) => {
+              const linked = task.docIds.includes(doc.id);
+              return (
+                <button
+                  key={doc.id}
+                  type="button"
+                  className={`chip chip--pick${linked ? ' is-on' : ''}`}
+                  aria-pressed={linked}
+                  onClick={() => store.toggleTaskDoc(task.id, doc.id)}
+                >
+                  {linked && <span aria-hidden>✓ </span>}
+                  {doc.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {events.length > 0 && (
+        <section className="block">
+          <h3 className="block__title">In World</h3>
+          <div className="chips">
             {events.map((ev) => (
               <span key={ev.id} className="chip">
                 {ev.title}

@@ -5,3 +5,7 @@ dist
 tsconfig.tsbuildinfo
 dist-embed
 dist-badurl
+dist-test
+.harness-dist
+tests/.out
+dist-t
