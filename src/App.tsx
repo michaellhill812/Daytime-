@@ -79,16 +79,20 @@ export default function App() {
             title="How Daytime works"
             aria-label="How Daytime works"
           >
+            {/* Drawn to the same weight as the bell and the bubble: every
+                stroke 1.6, nothing filled. A solid dot and a heavier stem
+                made this one read brighter than its neighbours, which is
+                only visible once they sit side by side. */}
             <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" fill="none" />
-              <circle cx="12" cy="7.6" r="1.15" fill="currentColor" />
               <path
-                d="M12 10.8v6"
+                d="M12 11.2v5.4"
                 stroke="currentColor"
-                strokeWidth="1.7"
+                strokeWidth="1.6"
                 strokeLinecap="round"
                 fill="none"
               />
+              <circle cx="12" cy="7.8" r="0.85" fill="currentColor" />
             </svg>
           </a>
           <Messages />
