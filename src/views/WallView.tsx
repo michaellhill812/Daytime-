@@ -38,28 +38,41 @@ export default function WallView({ active }: { active: boolean }) {
   return (
     <div className={`view view--wall${active ? ' is-active' : ''}`} aria-hidden={!active}>
       <header className="wall__head">
+        {/* The title row stays left-aligned and short on purpose: the notes,
+            bell and account buttons float over the top-right corner, and
+            anything reaching across to that edge ends up underneath them.
+            Search gets its own row below that band instead of sharing it. */}
         <div className="wall__title-row">
           <h1 className="view__title">Wall</h1>
-          <div className="search">
-            <input
-              className="field field--search"
-              type="search"
-              placeholder="Search the Wall…"
-              value={query}
-              aria-label="Search the Wall"
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {query && (
-              <button
-                type="button"
-                className="search__clear"
-                aria-label="Clear search"
-                onClick={() => setQuery('')}
-              >
-                ×
-              </button>
-            )}
-          </div>
+
+          {/* Here rather than at the end of the grid: as a tile it sat after
+              every card, so the more you pinned the further you had to scroll
+              to pin anything else — worst on a phone, where the grid is one
+              column. Up here it stays put however long the Wall gets. */}
+          <button type="button" className="btn wall__add" onClick={addDoc}>
+            <span aria-hidden>+</span> Add
+          </button>
+        </div>
+
+        <div className="search">
+          <input
+            className="field field--search"
+            type="search"
+            placeholder="Search the Wall…"
+            value={query}
+            aria-label="Search the Wall"
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <button
+              type="button"
+              className="search__clear"
+              aria-label="Clear search"
+              onClick={() => setQuery('')}
+            >
+              ×
+            </button>
+          )}
         </div>
         <div className="filters">
           <button
@@ -83,32 +96,22 @@ export default function WallView({ active }: { active: boolean }) {
         </div>
       </header>
 
-      {query && docs.length === 0 && (
-        <p className="empty">Nothing on the Wall matches “{query.trim()}”.</p>
-      )}
+      {docs.length === 0 &&
+        (query ? (
+          <p className="empty">Nothing on the Wall matches “{query.trim()}”.</p>
+        ) : (
+          // The add tile used to be the only thing here when the Wall was
+          // empty, and moving it to the header would have left a blank screen.
+          <p className="empty">
+            {filter ? 'Nothing filed under this spoke yet.' : 'Nothing on the Wall yet.'} Use{' '}
+            <strong>+ Add</strong> above.
+          </p>
+        ))}
 
       <div className="wall__grid">
         {docs.map((doc) => (
           <WallCard key={doc.id} doc={doc} onOpen={() => openDoc(doc.id)} />
         ))}
-
-        <div
-          className="card card--add"
-          role="button"
-          tabIndex={0}
-          onClick={addDoc}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              addDoc();
-            }
-          }}
-        >
-          <span className="card--add__plus" aria-hidden>
-            +
-          </span>
-          <span>Add something</span>
-        </div>
       </div>
 
       <NewDocSheet

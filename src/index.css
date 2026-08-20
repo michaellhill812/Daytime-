@@ -319,11 +319,13 @@ button {
 
 /* ----------------------------------------------------------------- wall -- */
 
+/* Stacked rows rather than one wrapping line. The floating buttons own the
+   top-right corner, so the only row allowed up at that height is the short
+   left-aligned one; everything full-width sits below them. */
 .wall__head {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
   padding: calc(var(--safe-top) + 22px) 22px 14px;
 }
 
@@ -456,24 +458,6 @@ button {
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--dim);
-}
-
-.card--add {
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  color: var(--faint);
-  border-style: dashed;
-  background: transparent;
-}
-
-.card--add:hover {
-  color: var(--text);
-}
-
-.card--add__plus {
-  font-size: 22px;
-  font-weight: 200;
 }
 
 /* ---------------------------------------------------------------- world -- */
@@ -1115,6 +1099,22 @@ button {
   gap: 14px;
 }
 
+/* Quiet enough to sit beside a section title, definite enough to find. It
+   stays next to the word "Wall" instead of at the right edge, which is where
+   the floating buttons live. */
+.wall__add {
+  padding: 5px 12px;
+  font-size: 12.5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wall__add:hover:not(:disabled) {
+  border-color: var(--line-hi, rgba(255, 255, 255, 0.22));
+}
+
 .event-row__priority {
   flex: none;
   width: 6px;
@@ -1232,6 +1232,20 @@ button {
 .field--select {
   flex: none;
   min-width: 0;
+}
+
+/* The open dropdown is painted by the OS, not by the page.
+ *
+ * iOS renders it as its own sheet and ignores this, which is why it looked
+ * fine there. Windows and Linux draw the popup on a light system background
+ * while the options still inherit the app's near-white text — white on white,
+ * and the spokes became unreadable the moment the list opened. The surface
+ * token is translucent and would inherit that same background, so this has to
+ * be an opaque colour of its own.
+ */
+select.field option {
+  background-color: var(--ink-2);
+  color: var(--text);
 }
 
 /* Safari renders date/time inputs at the platform's own size and ignores the
