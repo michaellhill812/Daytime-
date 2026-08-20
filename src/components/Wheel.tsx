@@ -37,7 +37,7 @@ interface WheelProps {
 
 /**
  * The home visualization: a hub carrying today's load, one spoke per domain,
- * and a rim that reads priority as hue and completion as fill.
+ * and a rim that reads priority as hue and open work as fill.
  *
  * Everything is derived from `segments.length`, so adding or removing a domain
  * re-lays the wheel out with no other change.
@@ -131,8 +131,8 @@ export default function Wheel({
         const end = angle + span / 2 - GAP_DEG / 2;
 
         // Fill grows outward from the spoke rather than from the sector's edge,
-        // so a part-finished arc is unmistakably attached to its own domain.
-        const reach = ((end - start) / 2) * seg.completion;
+        // so a part-filled arc is unmistakably attached to its own domain.
+        const reach = ((end - start) / 2) * seg.load;
 
         const inner = polar(C, C, SPOKE_INNER, angle);
         const outer = polar(C, C, SPOKE_OUTER, angle);
@@ -175,7 +175,7 @@ export default function Wheel({
                 flat — so the box was a sliver, and the blur got clipped into a
                 rectangle sitting visibly across the curve. Concentric strokes
                 can only ever be the shape of the arc itself. */}
-            {seg.completion > 0.001 &&
+            {seg.load > 0 &&
               FILL_LAYERS.map((layer) => (
                 <path
                   key={layer.width}

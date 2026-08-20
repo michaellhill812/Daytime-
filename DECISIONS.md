@@ -92,6 +92,40 @@ hundreds, and editing the rule stays one edit.
 
 ---
 
+## The ring reads open work, not finished work
+
+`RingSegment.load` is the share of a domain's sector that gets painted, and it
+is driven by **open** tasks. It was `done / total` — a completion bar — and
+that was the wrong instrument on a glanceable HUD: a domain with four untouched
+tasks drew nothing at all, so the spoke most owed attention was the one drawn
+emptiest, while a nearly-cleared domain blazed. Reported from the app as "I
+have an open task under self care that isn't appearing in the outside ring",
+which is exactly right.
+
+The scale is **absolute** — `openCount / 6`, floored at 0.2 so one open task is
+never invisible, capped at a full sector. Two alternatives were considered and
+both are worse:
+
+- *A proportion of the domain's own list* is what it used to be, inverted. One
+  open of one would fill the whole sector while five of twenty filled a
+  quarter — backwards for "how much is here".
+- *Normalising against the busiest domain* makes every other arc lengthen the
+  moment you clear the heaviest one. **Finishing work must never look like
+  acquiring it.**
+
+A fixed ceiling costs saturation past six open tasks and buys a mark that means
+the same thing every time you look at it. `FULL_LOAD` in `selectors.ts` is the
+knob.
+
+Consequences worth knowing: a fully finished domain now draws an **empty** arc
+rather than a full green one, so `DONE_COLOR` had no reader left and is gone —
+"clear" is said by the label and by the dimmed spoke cap instead. Open counts,
+the overdue dot, and the hub's number were never part of this and did not
+change. `tests/ring.mjs` covers the flip and fails loudly against the old
+encoding.
+
+---
+
 ## Identity, and the workspace-routing bug
 
 Authorship is stored as an **email**, not a name. It is the one identifier
@@ -261,6 +295,7 @@ every suite then fails on a 404 that looks nothing like a stale process.
 - `batch.mjs`, `verify.mjs`, `verify2.mjs` — the three views end to end
 - `attrib.mjs` — authorship and the updates feed
 - `attach.mjs` — linking Wall documents to tasks
+- `ring.mjs` — the wheel's arc, against open work
 - `whentest.mjs` — day-and-time captions in the wheel and the bell
 - `walltest.mjs` — Wall header geometry at two widths, and `<option>` colour
 - `infotest.mjs` — the floating button row

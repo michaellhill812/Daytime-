@@ -14,17 +14,15 @@ import { endOfDay, isSameDay, startOfDay, toDateKey } from '../lib/date';
 /**
  * Ring / status colors.
  *
- * The ring answers two questions at once: how much of a domain is finished
- * (arc fill) and how hot the unfinished part is (arc hue). Red high, blue low,
- * green done — with amber in the middle so "medium" doesn't have to borrow one
- * of the extremes.
+ * The ring answers two questions at once: how much a domain is carrying (arc
+ * fill) and how hot the hottest of it is (arc hue). Red high, blue low, with
+ * amber in the middle so "medium" doesn't have to borrow one of the extremes.
  */
 export const PRIORITY_COLOR: Record<Priority, string> = {
   3: '#FF453A',
   2: '#FF9F0A',
   1: '#0A84FF',
 };
-export const DONE_COLOR = '#30D158';
 export const EMPTY_COLOR = '#2A2E38';
 
 export const PRIORITY_LABEL: Record<Priority, string> = {
@@ -104,13 +102,26 @@ export function focusDigest(state: DaytimeState, now: Date): FocusDigest {
 
 // -------------------------------------------------------------------- ring --
 
+/**
+ * Open tasks that fill a domain's whole sector.
+ *
+ * The arc is an absolute gauge, not a proportion of the domain's own list: a
+ * ratio would draw one open task out of one as a full sector and five out of
+ * twenty as a quarter, which is backwards for a HUD you read at a glance.
+ * Scaling against the busiest domain instead would make every other arc
+ * lengthen the moment you cleared the heaviest one — finishing work must never
+ * look like acquiring it. A fixed ceiling costs saturation past six and buys a
+ * mark that means the same thing every time you look at it.
+ */
+const FULL_LOAD = 6;
+
 export interface RingSegment {
   domain: Domain;
   total: number;
   done: number;
-  /** 0..1 — the share of this domain's arc that is filled. */
-  completion: number;
-  /** Arc hue: the hottest open priority, or green when nothing is open. */
+  /** 0..1 — the share of this domain's arc that is filled by open work. */
+  load: number;
+  /** Arc hue: the hottest open priority. */
   color: string;
   openCount: number;
   overdueCount: number;
@@ -135,16 +146,19 @@ export function ringSegments(state: DaytimeState, now: Date): RingSegment[] {
       (t) => t.due && new Date(t.due).getTime() < now.getTime(),
     ).length;
 
-    let color: string;
-    if (tasks.length === 0) color = EMPTY_COLOR;
-    else if (topPriority === null) color = DONE_COLOR;
-    else color = PRIORITY_COLOR[topPriority];
+    // The arc is only drawn when something is open, so the hue is always a
+    // priority in practice. The fallback is here for the type, not the eye.
+    const color = topPriority === null ? EMPTY_COLOR : PRIORITY_COLOR[topPriority];
+
+    // A single open task still gets a mark you cannot miss — the whole point of
+    // the ring is that nothing open is invisible.
+    const load = openTasks.length === 0 ? 0 : Math.max(0.2, Math.min(1, openTasks.length / FULL_LOAD));
 
     return {
       domain,
       total: tasks.length,
       done,
-      completion: tasks.length === 0 ? 0 : done / tasks.length,
+      load,
       color,
       openCount: openTasks.length,
       overdueCount,
