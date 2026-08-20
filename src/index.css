@@ -100,11 +100,28 @@ button {
   inset: -20%;
   pointer-events: none;
   background:
-    radial-gradient(38% 30% at 50% 22%, rgba(90, 120, 255, 0.1), transparent 70%),
+    /* The spotlight, in three passes: a tight core just off the top edge, a
+       broader halo under it, and a wide floor wash. Stacked stops cost
+       nothing per frame — the layer is rasterized once and only its transform
+       animates — so the light can be shaped properly without buying back any
+       of the frame budget the blur used to eat. */
+    radial-gradient(40% 22% at 50% 4%, rgba(168, 190, 255, 0.13), transparent 70%),
+    radial-gradient(58% 34% at 50% 12%, rgba(96, 126, 245, 0.1), transparent 72%),
+    radial-gradient(92% 56% at 50% 20%, rgba(74, 100, 210, 0.055), transparent 76%),
     radial-gradient(45% 35% at 82% 78%, rgba(255, 120, 90, 0.055), transparent 72%),
     radial-gradient(40% 40% at 12% 70%, rgba(60, 200, 160, 0.05), transparent 70%);
   will-change: transform;
   animation: drift 34s var(--ease) infinite alternate;
+}
+
+/* Separate from the aurora because it must not drift: a vignette anchored to
+   the viewport is what makes the light overhead read as a spotlight rather
+   than as a lighter shade of background. Static, so it paints once. */
+.app__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 0%, transparent 38%, rgba(0, 0, 0, 0.55) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -179,15 +196,16 @@ button {
   overflow: visible;
 }
 
+/* No `stroke` in these rules on purpose: the colour is a gradient set as a
+   presentation attribute in Wheel.tsx, and a CSS declaration would win over it
+   and flatten the ring back to one tone. */
 .wheel__rim {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.05);
   stroke-width: 1;
 }
 
 .wheel__track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.07);
   stroke-width: 9;
   stroke-linecap: round;
 }
@@ -262,19 +280,24 @@ button {
   cursor: pointer;
 }
 
+/* Slightly more translucent than opaque, so the spotlight behind it shows
+   through the glass rather than stopping at it. */
 .hub__disc {
-  fill: rgba(12, 14, 20, 0.92);
+  fill: rgba(12, 14, 20, 0.86);
 }
 
+/* Same rule as the ring: the stroke is a gradient attribute, so declaring a
+   colour here would flatten the rim light. Hover brightens by opacity
+   instead, which scales the whole gradient rather than replacing it. */
 .hub__edge {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.14);
   stroke-width: 1;
-  transition: stroke 240ms var(--ease);
+  opacity: 0.85;
+  transition: opacity 240ms var(--ease);
 }
 
 .hub:hover .hub__edge {
-  stroke: rgba(255, 255, 255, 0.32);
+  opacity: 1;
 }
 
 .hub__count {
@@ -1627,6 +1650,26 @@ button {
   z-index: 40;
   display: flex;
   gap: 10px;
+}
+
+/* World is a full-screen panel with its own header, and this floating cluster
+   sits above it — the info button landed directly on World's Close. Hidden
+   while it is open, rather than repositioned, because none of these belong to
+   the calendar anyway.
+
+   `:has()` keeps the rule here instead of threading an "is World open" prop
+   through to the account button, which is rendered outside the app tree
+   entirely. Where it isn't supported nothing hides, which is the behaviour
+   this replaced. */
+body:has(.view--world.is-open) .hud,
+body:has(.view--world.is-open) .account {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hud,
+.account {
+  transition: opacity 240ms var(--ease);
 }
 
 /* `relative` matters: the count badges are absolutely positioned, and these

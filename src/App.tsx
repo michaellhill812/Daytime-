@@ -55,6 +55,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="app__aurora" aria-hidden />
+      <div className="app__vignette" aria-hidden />
 
       <PeekProvider>
         <div className="stage">
