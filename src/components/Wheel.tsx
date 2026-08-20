@@ -55,7 +55,7 @@ export default function Wheel({
     <svg className="wheel" viewBox={`0 0 ${SIZE} ${SIZE}`} role="group" aria-label="Task domains">
       <defs>
         {/* Glass, built entirely out of gradients.
-​
+
             The convincing part of a frosted panel is not the blur — it is the
             light on it: a sheen down the face, a specular near the top, and a
             rim that catches hardest where the light hits. Those are paint, and
