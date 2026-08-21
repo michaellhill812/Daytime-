@@ -7,10 +7,9 @@ import {
   PRIORITY_LABEL,
   domainById,
   eventsForTask,
-  searchDocs,
+  docsForPicking,
 } from '../store/selectors';
 import { fromDateTimeInputs, toDateKey, toTimeInput } from '../lib/date';
-import type { Doc } from '../types';
 
 /**
  * Task detail, openable from anywhere a task appears.
@@ -38,20 +37,17 @@ export default function TaskSheet({
   // that does find a task.
   const [docQuery, setDocQuery] = useState('');
 
-  /**
-   * What to offer, in the order it is most likely wanted: what is already
-   * attached, then anything filed under this task's own spoke, then the rest
-   * alphabetically. A career task should find the career documents without
-   * anyone having to search for them.
-   */
-  const pickable = useMemo(() => {
-    if (!task) return [];
-    const rank = (d: Doc) =>
-      (task.docIds.includes(d.id) ? 0 : 2) + (d.domainId === task.domainId ? 0 : 1);
-    return [...searchDocs(state, docQuery)].sort(
-      (a, b) => rank(a) - rank(b) || a.title.localeCompare(b.title),
-    );
-  }, [state, docQuery, task]);
+  const pickable = useMemo(
+    () =>
+      task
+        ? docsForPicking(state, {
+            domainId: task.domainId,
+            attached: task.docIds,
+            query: docQuery,
+          })
+        : [],
+    [state, docQuery, task],
+  );
 
   if (!task) return null;
 

@@ -256,6 +256,16 @@ on a light system background while options inherit the app's near-white text —
 white on white. iOS renders its own sheet and ignores page styling, which is
 why it looked fine there. Options carry an opaque background of their own.
 
+**An optional callback prop is a bug waiting for the fifth call site.**
+`TaskRow` took `onOpenDoc`/`onOpenEvent` as optional props, and three of the
+five lists rendering a task row never passed them — the completed-task list
+among them. The chips still rendered, still focused, still looked live, and
+swallowed every tap. Nothing type-checks a prop nobody passed. `TaskRow` was
+already calling `usePeek()` for `openTask`, so the handlers now come from
+context: a hook cannot be forgotten, and every list gets the behaviour for
+free. Prefer context over an optional prop whenever the default is "do
+nothing" and the component is rendered from more than one place.
+
 **The floating buttons own the top-right corner.** Anything full-width in that
 band ends up underneath them. The Wall's search has its own row for this
 reason, and the whole cluster hides while World is open (via `:has()`, so the
@@ -304,6 +314,7 @@ every suite then fails on a 404 that looks nothing like a stale process.
 - `batch.mjs`, `verify.mjs`, `verify2.mjs` — the three views end to end
 - `attrib.mjs` — authorship and the updates feed
 - `attach.mjs` — linking Wall documents to tasks
+- `attach2.mjs` — attaching at creation, and chips on completed tasks
 - `ring.mjs` — the wheel's arc, against open work
 - `duetime.mjs` — deadline labels, timed and untimed
 - `whentest.mjs` — day-and-time captions in the wheel and the bell

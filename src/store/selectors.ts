@@ -152,7 +152,8 @@ export function ringSegments(state: DaytimeState, now: Date): RingSegment[] {
 
     // A single open task still gets a mark you cannot miss — the whole point of
     // the ring is that nothing open is invisible.
-    const load = openTasks.length === 0 ? 0 : Math.max(0.2, Math.min(1, openTasks.length / FULL_LOAD));
+    const load =
+      openTasks.length === 0 ? 0 : Math.max(0.2, Math.min(1, openTasks.length / FULL_LOAD));
 
     return {
       domain,
@@ -580,6 +581,28 @@ export function searchDocs(state: DaytimeState, query: string): Doc[] {
     const domain = domainById(state, d.domainId)?.name ?? '';
     return matches(`${d.title} ${d.body ?? ''} ${domain}`, terms);
   });
+}
+
+/**
+ * Wall documents in the order they are most likely wanted when attaching them
+ * to a task: what is already attached, then anything filed under the same
+ * spoke, then the rest alphabetically. A career task should surface the career
+ * documents without anyone having to search for them.
+ *
+ * Shared by both attach points — the quick-add that creates a task and the
+ * sheet that edits one — so the two can never drift into different orders.
+ */
+export function docsForPicking(
+  state: DaytimeState,
+  opts: { domainId?: string; attached?: string[]; query?: string } = {},
+): Doc[] {
+  const attached = opts.attached ?? [];
+  const rank = (d: Doc) =>
+    (attached.includes(d.id) ? 0 : 2) + (opts.domainId && d.domainId === opts.domainId ? 0 : 1);
+
+  return [...searchDocs(state, opts.query ?? '')].sort(
+    (a, b) => rank(a) - rank(b) || a.title.localeCompare(b.title),
+  );
 }
 
 export interface EventHit {

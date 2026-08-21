@@ -1313,6 +1313,21 @@ select.field option {
   white-space: nowrap;
 }
 
+/* The attach toggle when it is open or holding a selection. Brightening by
+   colour alone would read as another priority; the border carries it. */
+.pill.is-on {
+  color: var(--text);
+  border-color: rgba(10, 132, 255, 0.55);
+  background: rgba(10, 132, 255, 0.16);
+}
+
+/* Sits under the quick-add row rather than inside it — the row is already six
+   controls wide, and a wrapping list of documents in among them buries the
+   fields you came for. */
+.quick-attach {
+  margin: 2px 0 6px;
+}
+
 .btn {
   padding: 8px 14px;
   border-radius: 10px;

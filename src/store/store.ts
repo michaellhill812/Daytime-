@@ -88,6 +88,8 @@ export class DaytimeStore {
     priority?: Priority;
     due?: string;
     notes?: string;
+    /** Wall documents to attach at creation, so a reference need not be added twice. */
+    docIds?: string[];
   }): Task => {
     const task: Task = {
       id: uid('task'),
@@ -95,7 +97,7 @@ export class DaytimeStore {
       title: input.title.trim(),
       priority: input.priority ?? 2,
       done: false,
-      docIds: [],
+      docIds: input.docIds ? [...input.docIds] : [],
       eventIds: [],
       ...this.authorship(),
       ...(input.due ? { due: input.due } : {}),

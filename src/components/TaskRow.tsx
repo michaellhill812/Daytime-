@@ -15,8 +15,6 @@ interface TaskRowProps {
   now: Date;
   /** Show which domain the task belongs to — needed in mixed lists, noise in a domain view. */
   showDomain?: boolean;
-  onOpenDoc?: (docId: string) => void;
-  onOpenEvent?: (eventId: string) => void;
 }
 
 /**
@@ -24,16 +22,15 @@ interface TaskRowProps {
  * about any one day. World shows the same task through AgendaRow instead,
  * where the day is already established and the clock time is what's left.
  */
-export default function TaskRow({
-  task,
-  now,
-  showDomain = false,
-  onOpenDoc,
-  onOpenEvent,
-}: TaskRowProps) {
+export default function TaskRow({ task, now, showDomain = false }: TaskRowProps) {
   const state = useDaytimeState();
   const store = useStore();
-  const { openTask } = usePeek();
+
+  // Opening comes from context, not from props. As props they were optional,
+  // and three of the five lists rendering a task row forgot to pass them — so
+  // the chips looked live and did nothing, most visibly on completed tasks.
+  // Nothing can forget a hook.
+  const { openTask, openDoc, openEvent } = usePeek();
 
   const domain = domainById(state, task.domainId);
   const docs = docsForTask(state, task);
@@ -91,7 +88,7 @@ export default function TaskRow({
               key={doc.id}
               type="button"
               className="chip chip--doc"
-              onClick={() => onOpenDoc?.(doc.id)}
+              onClick={() => openDoc(doc.id)}
               title={`On the Wall: ${doc.title}`}
             >
               <svg viewBox="0 0 24 24" width="11" height="11" aria-hidden>
@@ -112,7 +109,7 @@ export default function TaskRow({
               key={ev.id}
               type="button"
               className="chip chip--event"
-              onClick={() => onOpenEvent?.(ev.id)}
+              onClick={() => openEvent(ev.id)}
               title={`In World: ${ev.title}`}
             >
               <svg viewBox="0 0 24 24" width="11" height="11" aria-hidden>

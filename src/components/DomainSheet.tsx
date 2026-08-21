@@ -4,7 +4,13 @@ import Diagram from './Diagram';
 import TaskRow from './TaskRow';
 import { usePeek } from './PeekProvider';
 import { useDaytimeState, useStore } from '../store/context';
-import { NEXT_PRIORITY, PRIORITY_COLOR, PRIORITY_LABEL, domainSnapshot } from '../store/selectors';
+import {
+  NEXT_PRIORITY,
+  PRIORITY_COLOR,
+  PRIORITY_LABEL,
+  docsForPicking,
+  domainSnapshot,
+} from '../store/selectors';
 import { formatShortDay, formatTime, fromDateTimeInputs, toDateKey } from '../lib/date';
 import type { Goal, Priority } from '../types';
 
@@ -45,6 +51,11 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
   const [showDone, setShowDone] = useState(false);
+  // References picked before the task exists. Attaching used to be reachable
+  // only by creating the task, reopening it, and attaching from its sheet —
+  // three steps for something you already knew when you typed the title.
+  const [attachIds, setAttachIds] = useState<string[]>([]);
+  const [showAttach, setShowAttach] = useState(false);
 
   const snap = useMemo(
     () => (domainId ? domainSnapshot(state, domainId, now) : null),
@@ -62,11 +73,22 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
 
     const due = fromDateTimeInputs(dueDate, dueTime);
 
-    store.addTask({ domainId: snap.domain.id, title, priority, ...(due ? { due } : {}) });
+    store.addTask({
+      domainId: snap.domain.id,
+      title,
+      priority,
+      ...(due ? { due } : {}),
+      ...(attachIds.length > 0 ? { docIds: attachIds } : {}),
+    });
     setDraft('');
     setDueDate('');
     setDueTime('');
+    setAttachIds([]);
+    setShowAttach(false);
   };
+
+  const toggleAttach = (docId: string) =>
+    setAttachIds((ids) => (ids.includes(docId) ? ids.filter((i) => i !== docId) : [...ids, docId]));
 
   const { ring } = snap;
 
@@ -151,6 +173,19 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
         >
           Today
         </button>
+        {/* Collapsed by default: most tasks carry no reference, and an always-
+            open list of every document would bury the fields that matter. */}
+        {state.docs.length > 0 && (
+          <button
+            type="button"
+            className={`pill${showAttach || attachIds.length > 0 ? ' is-on' : ''}`}
+            onClick={() => setShowAttach((v) => !v)}
+            aria-expanded={showAttach}
+            title="Attach a document from the Wall"
+          >
+            Docs{attachIds.length > 0 ? ` ${attachIds.length}` : ''}
+          </button>
+        )}
         <button
           type="button"
           className="btn btn--primary"
@@ -160,6 +195,32 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
           Add
         </button>
       </div>
+
+      {showAttach && state.docs.length > 0 && (
+        <div className="quick-attach">
+          <p className="block__hint">Attach from the Wall</p>
+          <div className="chips">
+            {docsForPicking(state, {
+              domainId: snap.domain.id,
+              attached: attachIds,
+            }).map((doc) => {
+              const on = attachIds.includes(doc.id);
+              return (
+                <button
+                  key={doc.id}
+                  type="button"
+                  className={`chip chip--pick${on ? ' is-on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() => toggleAttach(doc.id)}
+                >
+                  {on && <span aria-hidden>✓ </span>}
+                  {doc.title}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {(snap.shortGoals.length > 0 || snap.longGoals.length > 0) && (
         <section className="block">
@@ -189,20 +250,15 @@ export default function DomainSheet({ domainId, onClose, now }: DomainSheetProps
           that only happens once. */}
       <section className="block">
         <h3 className="block__title">
-          Open<span className="block__count">{snap.open.length + onceEvents.length}</span>
+          Open
+          <span className="block__count">{snap.open.length + onceEvents.length}</span>
         </h3>
         {snap.open.length === 0 && onceEvents.length === 0 ? (
           <p className="empty">Clear.</p>
         ) : (
           <div className="list">
             {snap.open.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                now={now}
-                onOpenDoc={openDoc}
-                onOpenEvent={openEvent}
-              />
+              <TaskRow key={task.id} task={task} now={now} />
             ))}
             {onceEvents.map((ev) => (
               <button

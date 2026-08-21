@@ -1,6 +1,5 @@
 import Sheet from './Sheet';
 import TaskRow from './TaskRow';
-import { usePeek } from './PeekProvider';
 import type { FocusDigest } from '../store/selectors';
 import { formatDayLabel } from '../lib/date';
 import type { Task } from '../types';
@@ -17,8 +16,6 @@ interface FocusSheetProps {
  * attention actually goes: what slipped, what's due, what's coming.
  */
 export default function FocusSheet({ open, onClose, digest, now }: FocusSheetProps) {
-  const { openDoc, openEvent } = usePeek();
-
   const group = (title: string, tasks: Task[], tone?: string) =>
     tasks.length > 0 && (
       <section className="block">
@@ -28,14 +25,7 @@ export default function FocusSheet({ open, onClose, digest, now }: FocusSheetPro
         </h3>
         <div className="list">
           {tasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              now={now}
-              showDomain
-              onOpenDoc={openDoc}
-              onOpenEvent={openEvent}
-            />
+            <TaskRow key={task.id} task={task} now={now} showDomain />
           ))}
         </div>
       </section>
