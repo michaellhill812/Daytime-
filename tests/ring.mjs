@@ -65,12 +65,18 @@ check(
 check(
   'every domain with open work has an arc',
   before.filter((s) => s.open > 0).every((s) => s.arc > 0),
-  before.filter((s) => s.open > 0 && s.arc === 0).map((s) => s.name).join(', '),
+  before
+    .filter((s) => s.open > 0 && s.arc === 0)
+    .map((s) => s.name)
+    .join(', '),
 );
 check(
   'a domain with nothing open has no arc',
   before.filter((s) => s.open === 0).every((s) => s.arc === 0),
-  before.filter((s) => s.open === 0 && s.arc > 0).map((s) => `${s.name}=${s.arc}`).join(', '),
+  before
+    .filter((s) => s.open === 0 && s.arc > 0)
+    .map((s) => `${s.name}=${s.arc}`)
+    .join(', '),
 );
 
 // A cleared domain is the case the old encoding got exactly backwards: all done
@@ -152,11 +158,7 @@ await page.waitForTimeout(600);
 
 const after = (await read()).find((s) => s.name === target.name);
 check('the domain really was cleared', after?.open === 0, `${after?.open} still open`);
-check(
-  'clearing a domain empties its arc',
-  after?.arc === 0,
-  `arc ${target.arc} → ${after?.arc}`,
-);
+check('clearing a domain empties its arc', after?.arc === 0, `arc ${target.arc} → ${after?.arc}`);
 check(
   'the finished tasks are still counted',
   (after?.done ?? 0) === (after?.total ?? -1) && (after?.total ?? 0) > 0,

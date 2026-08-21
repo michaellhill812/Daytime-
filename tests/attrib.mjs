@@ -108,7 +108,11 @@ await p.waitForTimeout(500);
 await p.locator('.spoke__hit').first().click();
 await p.waitForTimeout(600);
 const sheetText = (await p.getByRole('dialog').textContent()) ?? '';
-check('a task in the Wheel names its author', /added by Andrew Smith/.test(sheetText), sheetText.slice(0, 120));
+check(
+  'a task in the Wheel names its author',
+  /added by Andrew Smith/.test(sheetText),
+  sheetText.slice(0, 120),
+);
 
 // Opening something from the feed should reach the real item.
 await p.keyboard.press('Escape');

@@ -301,6 +301,28 @@ grid, so clamped cards spilled past their own border.
 
 ---
 
+## Formatting
+
+`.prettierrc.json` exists because the repo had a consistent style and nothing
+recording it. Running `npx prettier` without a config picks Prettier's defaults
+— double quotes, 80 columns — and rewrites every file it touches into a diff
+that buries the actual change. That happened once.
+
+The settings are not a preference; they were derived from the code and verified
+against it. `singleQuote`, `printWidth: 100`, `semi`, `trailingComma: "all"`,
+`arrowParens: "always"`, `tabWidth: 2` — with those, every file under `src/`
+already passed `--check` before the config was added, so committing it
+reformatted no source at all.
+
+Prettier is pinned as a devDependency for the same reason. A config with no
+version behind it still lets whatever Prettier happens to be installed apply
+its own defaults for anything the config doesn't name — `objectWrap` changed
+default in 3.5 and silently expands object literals.
+
+`npm run format` writes, `npm run format:check` verifies. Markdown is
+ignored: Prettier's only opinion about these documents is to swap `*emphasis*`
+for `_emphasis_`, and the line wrapping here is deliberate.
+
 ## Testing
 
 No test runner. Everything is driven by Playwright against a **real

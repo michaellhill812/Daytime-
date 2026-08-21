@@ -99,8 +99,12 @@ check('the label survives a reload', reloaded === tomorrow, `${tomorrow} → ${r
 // `placeholder`, so an empty one shows only the browser's format hint. The
 // quick-add solved this with captions; the task sheet had never been given
 // them.
-await page.getByRole('dialog').locator('.task', { hasText: 'Untimed tomorrow' }).first()
-  .locator('.task__title').click();
+await page
+  .getByRole('dialog')
+  .locator('.task', { hasText: 'Untimed tomorrow' })
+  .first()
+  .locator('.task__title')
+  .click();
 await page.waitForTimeout(700);
 const editor = page.getByRole('dialog').last();
 const dueRow = editor.locator('.compose__row');

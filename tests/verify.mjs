@@ -3,7 +3,8 @@ import { chromium, OUT, APP, HARNESS } from './pw.mjs';
 const URL = `${APP}/`;
 const pass = [];
 const fail = [];
-const check = (name, ok, detail = '') => (ok ? pass : fail).push(name + (detail ? ` — ${detail}` : ''));
+const check = (name, ok, detail = '') =>
+  (ok ? pass : fail).push(name + (detail ? ` — ${detail}` : ''));
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -38,12 +39,20 @@ await page.waitForTimeout(500);
 
 // The doc sheet should now be open on the new document.
 const docSheet = page.getByRole('dialog');
-check('new doc opens after creating', (await docSheet.getByRole('heading').first().textContent())?.includes('Verify note'));
+check(
+  'new doc opens after creating',
+  (await docSheet.getByRole('heading').first().textContent())?.includes('Verify note'),
+);
 check(
   'new doc kept its spoke',
   (await docSheet.locator('.sheet__subtitle').textContent())?.includes(spokeOptions[1]),
 );
-check('new doc kept its body', (await docSheet.locator('textarea.field--body').inputValue()).includes('Body written at compose time'));
+check(
+  'new doc kept its body',
+  (await docSheet.locator('textarea.field--body').inputValue()).includes(
+    'Body written at compose time',
+  ),
+);
 check('doc sheet can re-file the spoke', await docSheet.locator('#doc-domain').isVisible());
 
 await page.keyboard.press('Escape');
@@ -70,7 +79,9 @@ await wallBlock.locator('.event-row').filter({ hasText: 'Verify note' }).click()
 await page.waitForTimeout(400);
 check(
   'World links through to the document',
-  (await page.getByRole('dialog').getByRole('heading').first().textContent())?.includes('Verify note'),
+  (await page.getByRole('dialog').getByRole('heading').first().textContent())?.includes(
+    'Verify note',
+  ),
 );
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
@@ -86,21 +97,25 @@ check('event form has a priority control', await prioPill.isVisible());
 const before = await prioPill.textContent();
 await prioPill.click();
 await page.waitForTimeout(150);
-check('event priority cycles', (await prioPill.textContent()) !== before, `${before} -> ${await prioPill.textContent()}`);
+check(
+  'event priority cycles',
+  (await prioPill.textContent()) !== before,
+  `${before} -> ${await prioPill.textContent()}`,
+);
 const chosen = await prioPill.textContent();
 await quick.getByRole('button', { name: 'Add' }).click();
 await page.waitForTimeout(400);
 
 const evRow = page.locator('.agenda').filter({ hasText: 'Verify event' });
 check('event was created', await evRow.isVisible());
-check('event row shows a priority mark', (await evRow.locator('.event-row__priority').count()) === 1);
+check(
+  'event row shows a priority mark',
+  (await evRow.locator('.event-row__priority').count()) === 1,
+);
 await evRow.locator('.agenda__title').click();
 await page.waitForTimeout(400);
 const evSheet = page.getByRole('dialog');
-check(
-  'event kept its spoke',
-  (await evSheet.locator('select.field--select').inputValue()) !== '',
-);
+check('event kept its spoke', (await evSheet.locator('select.field--select').inputValue()) !== '');
 check(
   'event kept its priority',
   (await evSheet.locator('.pill').textContent())?.trim() === chosen?.trim(),
@@ -146,7 +161,9 @@ await page
   .first()
   .click();
 await page.waitForTimeout(400);
-const dueBlock = page.locator('.block').filter({ has: page.locator('.block__title', { hasText: /^Schedule$/ }) });
+const dueBlock = page
+  .locator('.block')
+  .filter({ has: page.locator('.block__title', { hasText: /^Schedule$/ }) });
 check(
   'wheel task with a date lands on the calendar',
   (await dueBlock.textContent())?.includes('Verify task'),

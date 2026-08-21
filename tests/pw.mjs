@@ -54,7 +54,8 @@ export function tally() {
   return {
     pass,
     fail,
-    check: (name, ok, detail = '') => (ok ? pass : fail).push(name + (detail ? ` — ${detail}` : '')),
+    check: (name, ok, detail = '') =>
+      (ok ? pass : fail).push(name + (detail ? ` — ${detail}` : '')),
     report() {
       console.log(`\nPASS ${pass.length}`);
       for (const p of pass) console.log('  ✓ ' + p);

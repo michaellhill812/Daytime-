@@ -10,18 +10,26 @@ page.on('pageerror', (e) => fail.push(`pageerror: ${e.message}`));
 await page.goto(`${APP}/`);
 await page.waitForTimeout(700);
 
-
 // ------------------------------------------------ the overloaded "pin" verb --
 await page.getByRole('button', { name: 'Wall', exact: true }).click();
 await page.waitForTimeout(400);
-check('adding lives in the header, not at the end of the grid',
-  (await page.locator('.wall__add').count()) === 1 && (await page.locator('.card--add').count()) === 0);
+check(
+  'adding lives in the header, not at the end of the grid',
+  (await page.locator('.wall__add').count()) === 1 &&
+    (await page.locator('.card--add').count()) === 0,
+);
 
 await page.locator('.wall__add').click();
 await page.waitForTimeout(400);
 let sheet = page.getByRole('dialog');
-check('compose is titled for adding', (await sheet.locator('.sheet__title').textContent())?.includes('Add to the Wall'));
-check('the create button says Add', (await sheet.getByRole('button', { name: 'Add to Wall' }).count()) === 1);
+check(
+  'compose is titled for adding',
+  (await sheet.locator('.sheet__title').textContent())?.includes('Add to the Wall'),
+);
+check(
+  'the create button says Add',
+  (await sheet.getByRole('button', { name: 'Add to Wall' }).count()) === 1,
+);
 
 await sheet.locator('#new-doc-title').fill('Renamed later');
 await sheet.getByRole('button', { name: 'Add to Wall' }).click();
@@ -29,7 +37,11 @@ await page.waitForTimeout(500);
 
 sheet = page.getByRole('dialog');
 const pinBtn = await sheet.getByRole('button', { name: /pin/i }).textContent();
-check('the doc sheet does not re-ask you to pin to the Wall', !/Pin to Wall/i.test(pinBtn ?? ''), pinBtn ?? '');
+check(
+  'the doc sheet does not re-ask you to pin to the Wall',
+  !/Pin to Wall/i.test(pinBtn ?? ''),
+  pinBtn ?? '',
+);
 check('it offers pinning to the top instead', /Pin to top/i.test(pinBtn ?? ''), pinBtn ?? '');
 
 // ------------------------------------------------------- editing doc titles --
@@ -39,19 +51,31 @@ await page.waitForTimeout(400);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(400);
 let cards = await page.locator('.card__title').allTextContents();
-check('the rename shows on the Wall card', cards.includes('Renamed in place'), cards.slice(0, 3).join('|'));
+check(
+  'the rename shows on the Wall card',
+  cards.includes('Renamed in place'),
+  cards.slice(0, 3).join('|'),
+);
 check('the old title is gone', !cards.includes('Renamed later'));
 
 // -------------------------------------------------------------- Wall search --
 await page.fill('.field--search', 'renamed');
 await page.waitForTimeout(300);
 cards = await page.locator('.card__title').allTextContents();
-check('search narrows the Wall', cards.length === 1 && cards[0] === 'Renamed in place', cards.join('|'));
+check(
+  'search narrows the Wall',
+  cards.length === 1 && cards[0] === 'Renamed in place',
+  cards.join('|'),
+);
 
 await page.fill('.field--search', 'limiting');
 await page.waitForTimeout(300);
 cards = await page.locator('.card__title').allTextContents();
-check('search finds seeded docs by title', cards.some((c) => /Limiting/i.test(c)), cards.join('|'));
+check(
+  'search finds seeded docs by title',
+  cards.some((c) => /Limiting/i.test(c)),
+  cards.join('|'),
+);
 
 // Body text, not just titles.
 await page.fill('.field--search', 'calisthenics');
@@ -61,7 +85,10 @@ check('search reaches document bodies', cards.length > 0, cards.join('|'));
 
 await page.fill('.field--search', 'zzzznope');
 await page.waitForTimeout(300);
-check('a search with no hits says so', await page.getByText(/Nothing on the Wall matches/).isVisible());
+check(
+  'a search with no hits says so',
+  await page.getByText(/Nothing on the Wall matches/).isVisible(),
+);
 
 await page.locator('.search__clear').first().click();
 await page.waitForTimeout(300);
@@ -91,7 +118,10 @@ await sheet.locator('#task-title').fill('Edited task');
 await page.waitForTimeout(300);
 // Two sheets are open here — the task sits on top of the domain it came from.
 check('the task sheet stacks over the domain sheet', (await page.locator('.sheet').count()) === 2);
-check('the title edit lands', (await sheet.locator('.sheet__title').last().textContent())?.includes('Edited task'));
+check(
+  'the title edit lands',
+  (await sheet.locator('.sheet__title').last().textContent())?.includes('Edited task'),
+);
 
 // Give it a real time so it lands on the timeline.
 const d = new Date();
@@ -105,7 +135,11 @@ await page.screenshot({ path: `${OUT}/task-sheet.png` });
 // One Escape must close exactly one sheet, not the whole stack.
 await page.keyboard.press('Escape');
 await page.waitForTimeout(350);
-check('Escape closes only the top sheet', (await page.locator('.sheet').count()) === 1, `${await page.locator('.sheet').count()} left`);
+check(
+  'Escape closes only the top sheet',
+  (await page.locator('.sheet').count()) === 1,
+  `${await page.locator('.sheet').count()} left`,
+);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(400);
 check('a second Escape closes the one beneath', (await page.locator('.sheet').count()) === 0);
@@ -114,24 +148,35 @@ check('a second Escape closes the one beneath', (await page.locator('.sheet').co
 await page.getByRole('button', { name: 'World', exact: true }).click();
 await page.waitForTimeout(600);
 
-const blockNamed = (re) => page.locator('.block').filter({ has: page.locator('.block__title', { hasText: re }) });
+const blockNamed = (re) =>
+  page.locator('.block').filter({ has: page.locator('.block__title', { hasText: re }) });
 const schedule = blockNamed(/^Schedule$/);
 check('the day has one Schedule section', await schedule.isVisible());
 const scheduleText = (await schedule.textContent()) ?? '';
 check('a wheel task appears in the timeline', /Edited task/.test(scheduleText));
 check('calendar events appear in the same timeline', /Wake-up|Workout/.test(scheduleText));
-check('the old split Events/Due headings are gone', (await page.locator('.block__title', { hasText: /^Due$/ }).count()) === 0);
+check(
+  'the old split Events/Due headings are gone',
+  (await page.locator('.block__title', { hasText: /^Due$/ }).count()) === 0,
+);
 
 // The task must sit in clock order among the events, not in its own list.
 const rows = await schedule.locator('.agenda__title').allTextContents();
 const idx = rows.findIndex((r) => r === 'Edited task');
-check('the task is interleaved, not appended', idx > 0 && idx < rows.length - 1, `index ${idx} of ${rows.length}`);
+check(
+  'the task is interleaved, not appended',
+  idx > 0 && idx < rows.length - 1,
+  `index ${idx} of ${rows.length}`,
+);
 
 // A task can be ticked off straight from the calendar.
 const taskRow = page.locator('.agenda', { hasText: 'Edited task' });
 await taskRow.locator('.agenda__check').click();
 await page.waitForTimeout(400);
-check('a task can be completed from the timeline', (await page.locator('.agenda--done').count()) >= 1);
+check(
+  'a task can be completed from the timeline',
+  (await page.locator('.agenda--done').count()) >= 1,
+);
 await page.screenshot({ path: `${OUT}/agenda.png` });
 
 // An untimed deadline falls to the foot of the day.
@@ -167,7 +212,10 @@ await page.screenshot({ path: `${OUT}/world-search.png` });
 
 await page.fill('.search--world .field--search', 'Edited task');
 await page.waitForTimeout(350);
-check('World search also finds dated tasks', ((await page.locator('.results').textContent()) ?? '').includes('Edited task'));
+check(
+  'World search also finds dated tasks',
+  ((await page.locator('.results').textContent()) ?? '').includes('Edited task'),
+);
 
 // Choosing a result should move the calendar to that day.
 await page.locator('.results .event-row').first().click();

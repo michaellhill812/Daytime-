@@ -18,13 +18,20 @@ async function open(query = '') {
   const p = await open();
   const btn = p.locator('.btn--google');
   check('the Google button is offered', await btn.isVisible());
-  check('email sign-in is still offered alongside it', await p.locator('input[type="email"]').isVisible());
+  check(
+    'email sign-in is still offered alongside it',
+    await p.locator('input[type="email"]').isVisible(),
+  );
   await p.screenshot({ path: `${OUT}/signin-google.png` });
 
   await btn.click();
   await p.waitForTimeout(300);
   const call = await p.evaluate(() => window.__calls.find((c) => c.fn === 'signInWithOAuth'));
-  check('it asks for the google provider', call?.args?.provider === 'google', JSON.stringify(call?.args));
+  check(
+    'it asks for the google provider',
+    call?.args?.provider === 'google',
+    JSON.stringify(call?.args),
+  );
   check(
     'it sends the browser back to this origin',
     call?.args?.options?.redirectTo === HARNESS,
@@ -40,12 +47,13 @@ async function open(query = '') {
   await p.locator('.btn--google').click();
   await p.waitForTimeout(350);
   const msg = (await p.locator('.gate__error').textContent())?.trim();
-  check('a disabled provider explains itself', /isn’t switched on/i.test(msg ?? ''), msg ?? '(none)');
-  check('and it names where to fix it', /Providers/i.test(msg ?? ''));
   check(
-    'the button becomes usable again',
-    !(await p.locator('.btn--google').isDisabled()),
+    'a disabled provider explains itself',
+    /isn’t switched on/i.test(msg ?? ''),
+    msg ?? '(none)',
   );
+  check('and it names where to fix it', /Providers/i.test(msg ?? ''));
+  check('the button becomes usable again', !(await p.locator('.btn--google').isDisabled()));
   await p.close();
 }
 
@@ -64,8 +72,16 @@ async function open(query = '') {
   const p = await open('?error=access_denied&error_description=You+cancelled+the+sign-in');
   await p.waitForTimeout(300);
   const msg = (await p.locator('.gate__error').textContent())?.trim();
-  check('a returned OAuth error is shown', /cancelled the sign-in/i.test(msg ?? ''), msg ?? '(none)');
-  check('it does not tell you to type an emailed code', !/code from the email/i.test(msg ?? ''), msg ?? '');
+  check(
+    'a returned OAuth error is shown',
+    /cancelled the sign-in/i.test(msg ?? ''),
+    msg ?? '(none)',
+  );
+  check(
+    'it does not tell you to type an emailed code',
+    !/code from the email/i.test(msg ?? ''),
+    msg ?? '',
+  );
   const url = p.url();
   check('the error is stripped from the URL', !url.includes('error='), url);
   await p.close();
@@ -73,10 +89,16 @@ async function open(query = '') {
 
 // A genuine expired-link error should still give the email advice.
 {
-  const p = await open('?error=access_denied&error_description=Email+link+is+invalid+or+has+expired');
+  const p = await open(
+    '?error=access_denied&error_description=Email+link+is+invalid+or+has+expired',
+  );
   await p.waitForTimeout(300);
   const msg = (await p.locator('.gate__error').textContent())?.trim();
-  check('an expired link still advises the code', /code from the email/i.test(msg ?? ''), msg ?? '(none)');
+  check(
+    'an expired link still advises the code',
+    /code from the email/i.test(msg ?? ''),
+    msg ?? '(none)',
+  );
   await p.close();
 }
 
@@ -116,7 +138,11 @@ async function open(query = '') {
   await verify.click();
   await p.waitForTimeout(350);
   const sent = await p.evaluate(() => window.__calls.at(-1));
-  check('the whole ten-digit code reaches Supabase', sent?.args?.token === '1234567890', sent?.args?.token);
+  check(
+    'the whole ten-digit code reaches Supabase',
+    sent?.args?.token === '1234567890',
+    sent?.args?.token,
+  );
   await p.close();
 }
 
@@ -131,11 +157,18 @@ async function open(query = '') {
   await p.getByRole('button', { name: 'Verify' }).click();
   await p.waitForTimeout(400);
   check('the token type falls back rather than failing', await p.evaluate(() => window.__verified));
-  check('and nothing is shown to the person about it', (await p.locator('.gate__error').count()) === 0);
+  check(
+    'and nothing is shown to the person about it',
+    (await p.locator('.gate__error').count()) === 0,
+  );
   const types = await p.evaluate(() =>
     window.__calls.filter((c) => c.fn === 'verifyOtp').map((c) => c.args.type),
   );
-  check('it tried email first, then magiclink', types.join(',') === 'email,magiclink', types.join(','));
+  check(
+    'it tried email first, then magiclink',
+    types.join(',') === 'email,magiclink',
+    types.join(','),
+  );
   await p.close();
 }
 
@@ -148,7 +181,10 @@ async function open(query = '') {
   const msg = (await p.locator('.gate__error').textContent())?.trim();
   check('a rate-limited send is reported', /60 seconds/i.test(msg ?? ''), msg ?? '(none)');
   check('it does not advance to the code screen', (await p.locator('.field--code').count()) === 0);
-  check('the send button is usable again', !(await p.getByRole('button', { name: 'Send code' }).isDisabled()));
+  check(
+    'the send button is usable again',
+    !(await p.getByRole('button', { name: 'Send code' }).isDisabled()),
+  );
   await p.close();
 }
 

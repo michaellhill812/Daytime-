@@ -75,7 +75,10 @@ await page.waitForTimeout(300);
 await page.getByRole('button', { name: 'World', exact: true }).click();
 await page.waitForTimeout(600);
 const wall = page.locator('.block', { hasText: 'Added to the Wall' });
-check('a spokeless doc still appears in World', (await wall.textContent())?.includes('Spokeless note'));
+check(
+  'a spokeless doc still appears in World',
+  (await wall.textContent())?.includes('Spokeless note'),
+);
 
 await browser.close();
 console.log(`\nPASS ${pass.length}`);

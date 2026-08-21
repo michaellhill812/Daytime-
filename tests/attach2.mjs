@@ -123,7 +123,9 @@ const wanted = (await seeded.locator('.chip--doc').first().textContent())?.trim(
 // It opens while the task is open — this always worked, and is the control.
 await seeded.locator('.chip--doc').first().click();
 await page.waitForTimeout(700);
-const openHeading = (await page.getByRole('dialog').last().getByRole('heading').first().textContent())?.trim();
+const openHeading = (
+  await page.getByRole('dialog').last().getByRole('heading').first().textContent()
+)?.trim();
 check('the chip works on an open task', openHeading === wanted, `opened "${openHeading}"`);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(600);
@@ -145,13 +147,19 @@ await doneChip.click();
 await page.waitForTimeout(700);
 
 // This is the check that failed: the tap was swallowed and no sheet opened.
-const heading = (await page.getByRole('dialog').last().getByRole('heading').first().textContent())?.trim();
+const heading = (
+  await page.getByRole('dialog').last().getByRole('heading').first().textContent()
+)?.trim();
 check(
   'the chip on a completed task opens a sheet at all',
   (await page.getByRole('dialog').count()) > before,
   `${before} sheets before, ${await page.getByRole('dialog').count()} after`,
 );
-check('and what it opens is the document itself', heading === wanted, `opened "${heading}", expected "${wanted}"`);
+check(
+  'and what it opens is the document itself',
+  heading === wanted,
+  `opened "${heading}", expected "${wanted}"`,
+);
 
 await page.screenshot({ path: `${OUT}/attach-done.png` });
 

@@ -25,7 +25,10 @@ const badge = async (p) => {
 // ---- Michael writes one note to Leila only, and one to everyone ----------
 {
   const p = await as('michael@example.com');
-  check('the bubble is offered when there are other people', await p.locator('.bubble').isVisible());
+  check(
+    'the bubble is offered when there are other people',
+    await p.locator('.bubble').isVisible(),
+  );
   check('nothing is unread for the sender', (await badge(p)) === 0);
 
   await p.locator('.bubble').click();
@@ -33,8 +36,16 @@ const badge = async (p) => {
   // Everyone + the two other people. You are never in your own recipient
   // list, so a three-person workspace offers three chips, not four.
   const chips = await p.locator('.chip--pick').allTextContents();
-  check('the composer offers Everyone plus each other person', chips.length === 3, chips.join(' / '));
-  check('you are not offered as a recipient to yourself', !chips.some((t) => /Michael/i.test(t)), chips.join(' / '));
+  check(
+    'the composer offers Everyone plus each other person',
+    chips.length === 3,
+    chips.join(' / '),
+  );
+  check(
+    'you are not offered as a recipient to yourself',
+    !chips.some((t) => /Michael/i.test(t)),
+    chips.join(' / '),
+  );
   check(
     'a member with no account name still appears by address',
     (await p.locator('.chip--pick').allTextContents()).some((t) => /andrew/i.test(t)),
@@ -56,10 +67,21 @@ const badge = async (p) => {
   const bodies = await p.locator('.msg__body').allTextContents();
   check('the sender sees both of their notes', bodies.length === 2, bodies.join(' | '));
   check('own notes are styled as mine', (await p.locator('.msg--mine').count()) === 2);
-  check('audience is named on the targeted note',
-    (await p.locator('.msg', { hasText: 'Just for Leila' }).locator('.msg__to').textContent())?.includes('Leila'));
-  check('audience reads Everyone on the broadcast',
-    (await p.locator('.msg', { hasText: 'For the whole workspace' }).locator('.msg__to').textContent())?.includes('Everyone'));
+  check(
+    'audience is named on the targeted note',
+    (
+      await p.locator('.msg', { hasText: 'Just for Leila' }).locator('.msg__to').textContent()
+    )?.includes('Leila'),
+  );
+  check(
+    'audience reads Everyone on the broadcast',
+    (
+      await p
+        .locator('.msg', { hasText: 'For the whole workspace' })
+        .locator('.msg__to')
+        .textContent()
+    )?.includes('Everyone'),
+  );
   check('sending does not make your own note unread', (await badge(p)) === 0);
   await p.screenshot({ path: `${OUT}/msg-sender.png` });
   await p.close();
@@ -68,7 +90,11 @@ const badge = async (p) => {
 // ---- Leila should have two waiting -------------------------------------
 {
   const p = await as('leila@example.com');
-  check('the addressed recipient has both notes waiting', (await badge(p)) === 2, String(await badge(p)));
+  check(
+    'the addressed recipient has both notes waiting',
+    (await badge(p)) === 2,
+    String(await badge(p)),
+  );
 
   await p.locator('.bubble').click();
   await p.waitForTimeout(500);
@@ -84,7 +110,11 @@ const badge = async (p) => {
 // ---- Andrew was only on the broadcast ----------------------------------
 {
   const p = await as('andrew@example.com');
-  check('a non-recipient sees only the broadcast waiting', (await badge(p)) === 1, String(await badge(p)));
+  check(
+    'a non-recipient sees only the broadcast waiting',
+    (await badge(p)) === 1,
+    String(await badge(p)),
+  );
 
   await p.locator('.bubble').click();
   await p.waitForTimeout(500);
@@ -101,7 +131,11 @@ const badge = async (p) => {
 // ---- Read state is on the message, so it follows to another device ------
 {
   const p = await as('leila@example.com');
-  check('read state follows the person, not the device', (await badge(p)) === 0, String(await badge(p)));
+  check(
+    'read state follows the person, not the device',
+    (await badge(p)) === 0,
+    String(await badge(p)),
+  );
   await p.close();
 }
 
