@@ -238,6 +238,15 @@ strokes of the same path can only ever be the shape of the arc.
 same tick as a class change returns a value mid-animation. Two attempts at
 proving the info icon's colour reported a mismatch that wasn't there.
 
+**An untimed deadline is 23:59, and must never be printed as one.** A task due
+"on Thursday" is stored at the end of Thursday — that is the one minute meaning
+"no particular time". Anything rendering a deadline has to ask `isTimed()`
+first, or it invents an 11:59pm nobody chose. `dueLabel` printed exactly that
+for untimed tasks due today; World avoids it by saying "to-do" instead. The
+mirror of the same trap is dropping a time that *was* chosen: `dueLabel` showed
+the clock only for today, so "tomorrow at 2:30pm" rendered as "Tomorrow". Both
+directions are covered by `tests/duetime.mjs`.
+
 **A `date`/`time` input ignores `placeholder`.** Empty, it shows only the
 browser's format hint, which says how to type but never what the field is
 for. They carry visible captions instead.
@@ -296,6 +305,7 @@ every suite then fails on a 404 that looks nothing like a stale process.
 - `attrib.mjs` — authorship and the updates feed
 - `attach.mjs` — linking Wall documents to tasks
 - `ring.mjs` — the wheel's arc, against open work
+- `duetime.mjs` — deadline labels, timed and untimed
 - `whentest.mjs` — day-and-time captions in the wheel and the bell
 - `walltest.mjs` — Wall header geometry at two widths, and `<option>` colour
 - `infotest.mjs` — the floating button row

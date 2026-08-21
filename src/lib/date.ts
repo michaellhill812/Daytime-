@@ -103,24 +103,45 @@ export function formatShortDay(d: Date): string {
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+/** True when a deadline names a moment, rather than just the day it falls on. */
+export function isTimed(iso: string): boolean {
+  return toTimeInput(iso) !== '';
+}
+
 /**
- * Human label for a deadline: "2d overdue", "6:30pm", "Tomorrow", "Fri", "Sep 3".
- * Deliberately terse — these render inside dense list rows.
+ * Human label for a deadline: "2d overdue", "6:30pm", "Tomorrow 2:30pm",
+ * "Fri", "Sep 3 9am". Deliberately terse — these render inside dense list rows.
+ *
+ * The time is shown whenever the task actually carries one, and withheld when
+ * it does not. A task due "tomorrow" with no time is stored at 23:59, so
+ * printing the clock unconditionally would invent a 11:59pm deadline nobody
+ * chose — the same fabricated precision World avoids by saying "to-do".
  */
 export function dueLabel(due: string, now: Date): string {
   const d = new Date(due);
   const today = startOfDay(now);
   const target = startOfDay(d);
   const days = Math.round((target.getTime() - today.getTime()) / DAY_MS);
+  const timed = isTimed(due);
 
+  // Overdue answers "how late", not "when" — a clock time here is noise.
   if (days < 0) {
     const n = Math.abs(days);
     return n === 1 ? 'Yesterday' : `${n}d overdue`;
   }
-  if (days === 0) return formatTime(d);
-  if (days === 1) return 'Tomorrow';
-  if (days < 7) return d.toLocaleDateString(undefined, { weekday: 'short' });
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  // Today needs no day word; the time alone is unambiguous, and is the whole
+  // point of the row when there is one.
+  if (days === 0) return timed ? formatTime(d) : 'Today';
+
+  const day =
+    days === 1
+      ? 'Tomorrow'
+      : days < 7
+        ? d.toLocaleDateString(undefined, { weekday: 'short' })
+        : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  return timed ? `${day} ${formatTime(d)}` : day;
 }
 
 /**
