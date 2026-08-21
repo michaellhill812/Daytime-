@@ -26,6 +26,7 @@ export default function WheelView({ active }: { active: boolean }) {
         <Wheel
           segments={segments}
           focusCount={digest.count}
+          focusPriority={digest.topPriority}
           onSelectDomain={setDomainId}
           onSelectCenter={() => setFocusOpen(true)}
         />

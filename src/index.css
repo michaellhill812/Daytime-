@@ -300,8 +300,10 @@ button {
   opacity: 1;
 }
 
+/* --focus is the hottest priority the number stands for, set inline. A clear
+   day sets nothing and keeps the neutral default. */
 .hub__count {
-  fill: var(--text);
+  fill: var(--focus, var(--text));
   font-size: 46px;
   font-weight: 200;
   letter-spacing: -0.03em;

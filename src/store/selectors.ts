@@ -69,6 +69,8 @@ export interface FocusDigest {
   /** High-priority work with no clock on it yet, or landing in the next few days. */
   deck: Task[];
   count: number;
+  /** Hottest priority across all three groups, or null when there is nothing. */
+  topPriority: Priority | null;
 }
 
 /**
@@ -97,7 +99,15 @@ export function focusDigest(state: DaytimeState, now: Date): FocusDigest {
   today.sort((a, b) => new Date(a.due!).getTime() - new Date(b.due!).getTime());
   deck.sort(byUrgency);
 
-  return { overdue, today, deck, count: overdue.length + today.length + deck.length };
+  return {
+    overdue,
+    today,
+    deck,
+    count: overdue.length + today.length + deck.length,
+    // The hub is one mark standing for all three groups, so it takes the
+    // hottest of them — same rule as the ring and the calendar badge.
+    topPriority: topPriorityOf([...overdue, ...today, ...deck]),
+  };
 }
 
 // -------------------------------------------------------------------- ring --

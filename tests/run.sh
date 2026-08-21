@@ -55,7 +55,7 @@ $ready || { echo "servers never came up" >&2; exit 1; }
 if [ $# -gt 0 ]; then
   suites=("$@")
 else
-  suites=(batch verify verify2 attrib attach attach2 ring duetime daybadge whentest walltest infotest msgtest signin)
+  suites=(batch verify verify2 attrib attach attach2 ring duetime daybadge hub whentest walltest infotest msgtest signin)
 fi
 
 failed=()

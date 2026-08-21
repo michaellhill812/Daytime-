@@ -35,7 +35,11 @@ export default function FocusSheet({ open, onClose, digest, now }: FocusSheetPro
     <Sheet
       open={open}
       onClose={onClose}
-      title={digest.count === 0 ? 'Nothing pressing' : `${digest.count} need you`}
+      title={
+        digest.count === 0
+          ? 'Nothing pressing'
+          : `${digest.count} ${digest.count === 1 ? 'item is' : 'items are'} on deck today`
+      }
       subtitle={formatDayLabel(now)}
     >
       {digest.count === 0 ? (
@@ -44,7 +48,11 @@ export default function FocusSheet({ open, onClose, digest, now }: FocusSheetPro
         <>
           {group('Overdue', digest.overdue, 'alert')}
           {group('Today', digest.today)}
-          {group('On deck', digest.deck, 'quiet')}
+          {/* Not "On deck" any more: the sheet's own title says everything
+              here is on deck today, and a section by that name read as a
+              contradiction of the count above it. This group is the narrower
+              thing — high-priority work with no claim on today yet. */}
+          {group('Coming up', digest.deck, 'quiet')}
         </>
       )}
     </Sheet>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { RingSegment } from '../store/selectors';
+import { PRIORITY_COLOR, type RingSegment } from '../store/selectors';
+import type { Priority } from '../types';
 import { arcPath, labelAnchor, polar, spokeAngles, wedgePath } from '../lib/geometry';
 
 /**
@@ -31,6 +32,8 @@ const FILL_LAYERS = [
 interface WheelProps {
   segments: RingSegment[];
   focusCount: number;
+  /** Hottest priority the hub's number stands for, or null when the day is clear. */
+  focusPriority: Priority | null;
   onSelectDomain: (domainId: string) => void;
   onSelectCenter: () => void;
 }
@@ -45,6 +48,7 @@ interface WheelProps {
 export default function Wheel({
   segments,
   focusCount,
+  focusPriority,
   onSelectDomain,
   onSelectCenter,
 }: WheelProps) {
@@ -257,7 +261,11 @@ export default function Wheel({
         className="hub"
         role="button"
         tabIndex={0}
-        aria-label={`${focusCount} things need you today`}
+        aria-label={
+          focusCount === 0
+            ? 'Nothing on deck today'
+            : `${focusCount} ${focusCount === 1 ? 'item is' : 'items are'} on deck today`
+        }
         onClick={onSelectCenter}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -271,7 +279,22 @@ export default function Wheel({
         <circle cx={C} cy={C} r={HUB_R} fill="url(#hubSpec)" />
         <circle cx={C} cy={C} r={HUB_R} fill="url(#hubGlow)" />
         <circle cx={C} cy={C} r={HUB_R} className="hub__edge" stroke="url(#hubRim)" />
-        <text x={C} y={C - 6} className="hub__count" textAnchor="middle" dominantBaseline="middle">
+        {/* The colour rides a custom property rather than a `fill` attribute:
+            .hub__count declares its own fill, and a CSS declaration beats an
+            SVG presentation attribute every time. Clear days keep the neutral
+            default, since no priority is standing behind the number. */}
+        <text
+          x={C}
+          y={C - 6}
+          className="hub__count"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={
+            focusPriority === null
+              ? undefined
+              : ({ '--focus': PRIORITY_COLOR[focusPriority] } as React.CSSProperties)
+          }
+        >
           {focusCount}
         </text>
         <text x={C} y={C + 24} className="hub__word" textAnchor="middle" dominantBaseline="middle">

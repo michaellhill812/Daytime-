@@ -131,8 +131,13 @@ encoding.
 Red, amber and blue mean High, Medium and Low — everywhere, and nowhere else.
 Any mark that stands for several tasks at once takes **the hottest of them**
 (`topPriorityOf`), because a summary that cooled off when quiet work was added
-next to urgent work would be lying about the urgent work. The wheel's arc and
-the calendar day's badge both go through that one function.
+next to urgent work would be lying about the urgent work. Three marks go
+through that one function: the wheel's arc, the calendar day's badge, and the
+hub's number.
+
+The hub keeps the neutral `--text` on a clear day rather than a hue, since no
+priority is standing behind a zero. The word under it stays faint whatever the
+number does — one accent at a time.
 
 The calendar badge was hardcoded to `--alert`, so a day holding nothing but
 low-priority work still shouted red — and red then meant "a deadline exists"
@@ -363,6 +368,7 @@ every suite then fails on a 404 that looks nothing like a stale process.
 - `attach2.mjs` — attaching at creation, and chips on completed tasks
 - `ring.mjs` — the wheel's arc, against open work
 - `daybadge.mjs` — the calendar badge's hue, per priority
+- `hub.mjs` — the hub's hue and the focus sheet's wording
 - `duetime.mjs` — deadline labels, timed and untimed
 - `whentest.mjs` — day-and-time captions in the wheel and the bell
 - `walltest.mjs` — Wall header geometry at two widths, and `<option>` colour
