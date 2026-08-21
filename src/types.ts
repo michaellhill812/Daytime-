@@ -159,6 +159,14 @@ export interface DaytimeState {
    * the storage layer can treat it as present.
    */
   messages?: Message[];
+  /**
+   * Ids of one-time document imports already applied to this workspace.
+   *
+   * This is a ledger, not a setting: it is the only thing standing between a
+   * deleted imported document and it reappearing on the next load. It must
+   * survive a merge (see `mergeStates`) and must never be cleared.
+   */
+  imports?: string[];
 }
 
 export type ViewId = 'wheel' | 'wall' | 'world';

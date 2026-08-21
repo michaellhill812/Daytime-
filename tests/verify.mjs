@@ -103,7 +103,7 @@ check(
   `${before} -> ${await prioPill.textContent()}`,
 );
 const chosen = await prioPill.textContent();
-await quick.getByRole('button', { name: 'Add' }).click();
+await quick.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForTimeout(400);
 
 const evRow = page.locator('.agenda').filter({ hasText: 'Verify event' });
@@ -146,7 +146,7 @@ await dateField.fill(key);
 await page.waitForTimeout(150);
 check('time enables once a date is set', await timeField.isEnabled());
 await timeField.fill('14:30');
-await domSheet.getByRole('button', { name: 'Add' }).click();
+await domSheet.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForTimeout(400);
 check('task was created', await domSheet.getByText('Verify task').first().isVisible());
 await page.keyboard.press('Escape');

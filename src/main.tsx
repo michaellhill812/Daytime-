@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { StoreProvider } from './store/context';
 import { DaytimeStore } from './store/store';
-import { LocalStorageAdapter } from './store/storage';
+import { LocalStorageAdapter, withDefaults } from './store/storage';
 import { createSeedState } from './data/seed';
 import { cloudEnabled, cloudUrlProblem } from './cloud/config';
 import './index.css';
@@ -21,7 +21,9 @@ async function bootLocal() {
 
   // Hydration is awaited before the first paint, so the app never flashes seed
   // data over real data.
-  const initial = saved ?? createSeedState(new Date());
+  // withDefaults on both branches, so a fresh seed and a loaded document enter
+  // the app through exactly one gate — imports included.
+  const initial = withDefaults(saved ?? createSeedState(new Date()));
   const store = new DaytimeStore(initial, adapter);
   if (!saved) store.flush();
 

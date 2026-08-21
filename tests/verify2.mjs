@@ -20,7 +20,7 @@ d.setDate(d.getDate() + 2);
 const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 await sheet.locator('input.field').first().fill('Date only task');
 await sheet.locator('input.field--date').fill(key);
-await sheet.getByRole('button', { name: 'Add' }).click();
+await sheet.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForTimeout(400);
 check('date-only task created', await sheet.getByText('Date only task').first().isVisible());
 

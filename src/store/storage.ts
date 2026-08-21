@@ -1,4 +1,12 @@
-import type { DaytimeState } from '../types';
+import type { DaytimeState, Doc } from '../types';
+import {
+  APPLICATIONS_ADDED_AT,
+  APPLICATIONS_PACK_ID,
+  APPLICATION_DOCS,
+} from '../data/applications';
+
+/** The spoke imported application material is filed under. */
+const WORK_DOMAIN_ID = 'dom-work';
 
 /**
  * A version mismatch discards the saved state and re-seeds.
@@ -20,7 +28,54 @@ export const SCHEMA_VERSION = 6;
  * version and orphaning what people already have.
  */
 export function withDefaults(state: DaytimeState): DaytimeState {
-  return state.messages ? state : { ...state, messages: [] };
+  const withMessages = state.messages ? state : { ...state, messages: [] };
+  return applyImports(withMessages);
+}
+
+/**
+ * Add a pack of documents to a workspace exactly once.
+ *
+ * Seeding is not an option for this: `createSeedState` only runs for a
+ * workspace that has none, and these documents had to reach a live workspace
+ * already full of real work. Bumping `SCHEMA_VERSION` would have re-seeded and
+ * destroyed it.
+ *
+ * Three things make running this on every load safe:
+ *
+ * - **The ledger.** Once `imports` names the pack it never applies again, so a
+ *   document deleted afterwards stays deleted. Without this it would come back
+ *   on the next reload, forever.
+ * - **Fixed ids and a fixed timestamp.** Two devices loading at the same moment
+ *   both apply the pack and both save. The three-way merge keys on id, so
+ *   identical documents collapse into one instead of doubling.
+ * - **Never overwriting.** A document whose id is already present is left
+ *   exactly as it is, edits included.
+ */
+export function applyImports(state: DaytimeState): DaytimeState {
+  const applied = state.imports ?? [];
+  if (applied.includes(APPLICATIONS_PACK_ID)) return state;
+
+  // File them under Work — unless that spoke has been renamed away or removed,
+  // in which case an unfiled document is better than one pointing at nothing.
+  const work = state.domains.some((d) => d.id === WORK_DOMAIN_ID) ? WORK_DOMAIN_ID : undefined;
+
+  const have = new Set(state.docs.map((d) => d.id));
+  const incoming: Doc[] = APPLICATION_DOCS.filter((d) => !have.has(d.id)).map((d) => ({
+    id: d.id,
+    title: d.title,
+    kind: 'note',
+    ...(work ? { domainId: work } : {}),
+    body: d.body,
+    pinned: false,
+    createdAt: APPLICATIONS_ADDED_AT,
+    updatedAt: APPLICATIONS_ADDED_AT,
+  }));
+
+  return {
+    ...state,
+    docs: [...state.docs, ...incoming],
+    imports: [...applied, APPLICATIONS_PACK_ID],
+  };
 }
 
 /**

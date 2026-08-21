@@ -103,7 +103,7 @@ await page.waitForTimeout(500);
 sheet = page.getByRole('dialog');
 
 await sheet.locator('input.field').first().fill('Editable task');
-await sheet.getByRole('button', { name: 'Add' }).click();
+await sheet.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForTimeout(400);
 
 await sheet.locator('.task__title', { hasText: 'Editable task' }).click();
@@ -187,7 +187,7 @@ await page.waitForTimeout(500);
 sheet = page.getByRole('dialog');
 await sheet.locator('input.field').first().fill('No clock task');
 await sheet.locator('input.field--date').fill(key);
-await sheet.getByRole('button', { name: 'Add' }).click();
+await sheet.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForTimeout(400);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);

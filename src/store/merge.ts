@@ -101,5 +101,11 @@ export function mergeStates(
       remote.messages ?? [],
       byId,
     ),
+    // Union, not a merge: the import ledger only ever grows, and an id present
+    // on either side means that pack has already been applied somewhere. This
+    // object lists every field explicitly, so anything omitted here is dropped
+    // on the next sync — and dropping this one would re-import documents the
+    // owner had deleted.
+    imports: [...new Set([...(local.imports ?? []), ...(remote.imports ?? [])])],
   };
 }

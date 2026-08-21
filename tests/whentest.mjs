@@ -61,7 +61,7 @@ await q.locator('input.field').first().fill('Probe event');
 await q.locator('input.field--time').fill('14:30');
 const opts = await q.locator('select.field--select option').allTextContents();
 await q.locator('select.field--select').selectOption({ label: opts[1] });
-await q.getByRole('button', { name: 'Add' }).click();
+await q.getByRole('button', { name: 'Add', exact: true }).click();
 await p2.waitForTimeout(500);
 
 await p2.getByRole('button', { name: 'Wheel', exact: true }).click();

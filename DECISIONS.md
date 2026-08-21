@@ -92,6 +92,37 @@ hundreds, and editing the rule stays one edit.
 
 ---
 
+## Getting documents into a live workspace
+
+Seeding cannot do it. `createSeedState` runs only for a workspace that has
+none, and the one rule above every other is that `SCHEMA_VERSION` never moves —
+a bump re-seeds, which for a live shared workspace means deleting real work.
+
+So a pack of documents is applied at the storage boundary instead, by
+`applyImports` in `store/storage.ts`, and three things keep that safe to run on
+every single load:
+
+- **A ledger.** `DaytimeState.imports` names the packs already applied. This is
+  the only thing standing between a document the owner deleted and it
+  reappearing on the next reload, forever. It is append-only and never cleared.
+- **Fixed ids and a fixed timestamp** (`APPLICATIONS_ADDED_AT`, not
+  `new Date()`). Two devices loading at once both apply the pack and both save;
+  the merge keys on id, so byte-identical documents collapse into one instead of
+  doubling. A per-device timestamp would make them differ and defeat that.
+- **Never overwriting.** An id already present is left alone, edits included.
+
+**`mergeStates` lists every field explicitly, so a field missing from it is
+dropped on the next sync.** `imports` had to be added there too — losing the
+ledger would silently re-import deleted documents. Anything new on
+`DaytimeState` needs a line in that function.
+
+One knock-on worth knowing: `getByRole(role, { name })` matches accessible
+names by **substring**. A document titled "Interview Study Guide — *Add*endum"
+broke three suites that clicked `{ name: 'Add' }`. Those matchers now pass
+`exact: true`; new ones should too.
+
+---
+
 ## The ring reads open work, not finished work
 
 `RingSegment.load` is the share of a domain's sector that gets painted, and it
