@@ -249,7 +249,14 @@ directions are covered by `tests/duetime.mjs`.
 
 **A `date`/`time` input ignores `placeholder`.** Empty, it shows only the
 browser's format hint, which says how to type but never what the field is
-for. They carry visible captions instead.
+for. They carry visible captions instead (`.capped` / `.capped__cap`) —
+**every** one of them. The quick-add got captions first and the task editor was
+left with two blank boxes, which is exactly how it was reported. If a date or
+time input is added anywhere, it wraps in `.capped`. Two consequences that are
+easy to miss: the row holding them must align on `flex-end`, or a bare button
+beside them floats up against the captions; and a caption sitting directly
+under a same-sized `.compose__label` heading reads as the field being labelled
+twice, so the heading goes rather than the caption.
 
 **An open `<select>` is painted by the OS.** Windows and Linux draw the popup
 on a light system background while options inherit the app's near-white text —

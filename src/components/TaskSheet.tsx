@@ -111,26 +111,39 @@ export default function TaskSheet({
           </button>
         </div>
 
-        <label className="compose__label" htmlFor="task-date">
-          Due
-        </label>
+        {/* No "Due" heading above these: the captions are the same size, case
+            and colour, so a heading directly above them read as the field being
+            labelled twice. The quick-add row does not carry one either, and the
+            inputs keep their aria-labels for anyone not reading the caption.
+
+            Captioned exactly as the quick-add is, and for the same reason: a
+            date or time input ignores `placeholder`, so an empty one shows only
+            the browser's format hint — "mm/dd/yyyy", "--:--" — which says how
+            to type but never what the field is for. Editing a task landed on
+            two blank boxes with nothing to tell them apart. */}
         <div className="compose__row">
-          <input
-            id="task-date"
-            className="field field--date"
-            type="date"
-            value={dueDate}
-            aria-label="Due date"
-            onChange={(e) => setDue(e.target.value, dueTime)}
-          />
-          <input
-            className="field field--time"
-            type="time"
-            value={dueTime}
-            aria-label="Due time"
-            disabled={!dueDate}
-            onChange={(e) => setDue(dueDate, e.target.value)}
-          />
+          <label className="capped">
+            <span className="capped__cap">Date</span>
+            <input
+              id="task-date"
+              className="field field--date"
+              type="date"
+              value={dueDate}
+              aria-label="Due date"
+              onChange={(e) => setDue(e.target.value, dueTime)}
+            />
+          </label>
+          <label className="capped">
+            <span className="capped__cap">Time</span>
+            <input
+              className="field field--time"
+              type="time"
+              value={dueTime}
+              aria-label="Due time"
+              disabled={!dueDate}
+              onChange={(e) => setDue(dueDate, e.target.value)}
+            />
+          </label>
           {task.due && (
             <button
               type="button"

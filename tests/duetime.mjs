@@ -93,5 +93,56 @@ const reloaded = (
 ).trim();
 check('the label survives a reload', reloaded === tomorrow, `${tomorrow} → ${reloaded}`);
 
+// ------------------------------------------- the editor says what its boxes are --
+
+// Editing a task landed on two unlabelled boxes: a date input ignores
+// `placeholder`, so an empty one shows only the browser's format hint. The
+// quick-add solved this with captions; the task sheet had never been given
+// them.
+await page.getByRole('dialog').locator('.task', { hasText: 'Untimed tomorrow' }).first()
+  .locator('.task__title').click();
+await page.waitForTimeout(700);
+const editor = page.getByRole('dialog').last();
+const dueRow = editor.locator('.compose__row');
+
+const caps = (await dueRow.locator('.capped__cap').allTextContents()).map((s) => s.trim());
+check('the task editor captions its date field', caps.includes('Date'), caps.join('/') || '(none)');
+check('and its time field', caps.includes('Time'), caps.join('/') || '(none)');
+
+check(
+  'the date input sits inside its caption',
+  (await dueRow.locator('.capped:has(input.field--date) .capped__cap').count()) === 1,
+);
+check(
+  'the time input sits inside its caption',
+  (await dueRow.locator('.capped:has(input.field--time) .capped__cap').count()) === 1,
+);
+
+// The captions have to be readable when the field is empty — that is the whole
+// case they exist for.
+await editor.locator('input.field--date').fill('');
+await page.waitForTimeout(250);
+check(
+  'the captions still show on an empty deadline',
+  await dueRow.locator('.capped__cap').first().isVisible(),
+);
+
+// Clear sits in the same row and must line up on the inputs, not float up
+// against the captions.
+await editor.locator('input.field--date').fill(key(2));
+await page.waitForTimeout(300);
+const clear = editor.getByRole('button', { name: 'Clear' });
+if ((await clear.count()) > 0) {
+  const cb = await clear.boundingBox();
+  const db = await editor.locator('input.field--date').boundingBox();
+  check(
+    'Clear lines up with the inputs, not the captions',
+    Math.abs(cb.y + cb.height - (db.y + db.height)) <= 4,
+    `clear ends ${Math.round(cb.y + cb.height)}, date ends ${Math.round(db.y + db.height)}`,
+  );
+}
+
+await page.screenshot({ path: `${OUT}/duetime-editor.png` });
+
 await browser.close();
 report();

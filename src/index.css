@@ -1385,10 +1385,13 @@ select.field option {
   margin-top: 0;
 }
 
+/* flex-end, not center: the inputs carry captions above them, so aligning on
+   the middle would float a bare button halfway up the caption. Same rule the
+   quick-add row uses, for the same reason. */
 .compose__row {
   display: flex;
   gap: 7px;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
