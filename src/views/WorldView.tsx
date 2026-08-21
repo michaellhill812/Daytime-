@@ -16,6 +16,7 @@ import {
   searchEvents,
   searchTasks,
   tasksOnDay,
+  topPriorityOf,
 } from '../store/selectors';
 import { useNow } from '../hooks/useNow';
 import {
@@ -232,7 +233,22 @@ export default function WorldView({ open, onClose }: { open: boolean; onClose: (
                 {/* A hollow mark, so a day that only gained a document reads as
                     a record of something rather than a demand for something. */}
                 {wallAdds > 0 && <span className="day__wall" aria-hidden />}
-                {openDue.length > 0 && <span className="day__due">{openDue.length}</span>}
+                {/* The badge was always red, which said "urgent" about a day
+                    holding nothing but low-priority work. It takes the hottest
+                    priority due that day instead — the same rule the wheel's
+                    arc uses, so a colour means one thing across both views. */}
+                {openDue.length > 0 && (
+                  <span
+                    className="day__due"
+                    style={
+                      {
+                        '--due': PRIORITY_COLOR[topPriorityOf(openDue) ?? 3],
+                      } as React.CSSProperties
+                    }
+                  >
+                    {openDue.length}
+                  </span>
+                )}
               </span>
             </button>
           );

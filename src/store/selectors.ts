@@ -115,6 +115,22 @@ export function focusDigest(state: DaytimeState, now: Date): FocusDigest {
  */
 const FULL_LOAD = 6;
 
+/**
+ * The hottest priority in a set of tasks, or null when the set is empty.
+ *
+ * Wherever several tasks are summarised by a single mark — the wheel's arc, a
+ * calendar day's badge — the mark takes the highest of them: a summary that
+ * softened because quiet work was added alongside urgent work would be lying
+ * about the urgent work. Callers filter to open tasks first if that is what
+ * they mean; this does not assume it.
+ */
+export function topPriorityOf(tasks: Task[]): Priority | null {
+  return tasks.reduce<Priority | null>(
+    (top, t) => (top === null || t.priority > top ? t.priority : top),
+    null,
+  );
+}
+
 export interface RingSegment {
   domain: Domain;
   total: number;
@@ -137,10 +153,7 @@ export function ringSegments(state: DaytimeState, now: Date): RingSegment[] {
     const openTasks = tasks.filter((t) => !t.done);
     const done = tasks.length - openTasks.length;
 
-    const topPriority = openTasks.reduce<Priority | null>(
-      (top, t) => (top === null || t.priority > top ? t.priority : top),
-      null,
-    );
+    const topPriority = topPriorityOf(openTasks);
 
     const overdueCount = openTasks.filter(
       (t) => t.due && new Date(t.due).getTime() < now.getTime(),

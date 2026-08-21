@@ -126,6 +126,23 @@ encoding.
 
 ---
 
+## One colour, one meaning
+
+Red, amber and blue mean High, Medium and Low — everywhere, and nowhere else.
+Any mark that stands for several tasks at once takes **the hottest of them**
+(`topPriorityOf`), because a summary that cooled off when quiet work was added
+next to urgent work would be lying about the urgent work. The wheel's arc and
+the calendar day's badge both go through that one function.
+
+The calendar badge was hardcoded to `--alert`, so a day holding nothing but
+low-priority work still shouted red — and red then meant "a deadline exists"
+in one view and "this is urgent" in another. Priority hues are passed down as
+an inline `--due` custom property and the CSS tints its own background from it
+with `color-mix`, so the wash can never disagree with the number sitting on it.
+
+Green is not in this scheme any more. It used to mean "all done" on the ring,
+and the ring stopped having anything to say about done work.
+
 ## Identity, and the workspace-routing bug
 
 Authorship is stored as an **email**, not a name. It is the one identifier
@@ -345,6 +362,7 @@ every suite then fails on a 404 that looks nothing like a stale process.
 - `attach.mjs` — linking Wall documents to tasks
 - `attach2.mjs` — attaching at creation, and chips on completed tasks
 - `ring.mjs` — the wheel's arc, against open work
+- `daybadge.mjs` — the calendar badge's hue, per priority
 - `duetime.mjs` — deadline labels, timed and untimed
 - `whentest.mjs` — day-and-time captions in the wheel and the bell
 - `walltest.mjs` — Wall header geometry at two widths, and `<option>` colour
