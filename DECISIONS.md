@@ -323,6 +323,22 @@ grid, so clamped cards spilled past their own border.
 
 ---
 
+## The field guide is a claim about the app
+
+`docs/daytime-guide.html` is the source of the published field guide (and
+`docs/daytime-guide.txt` the plain-text twin for the Wall). Neither is built or
+served — they are in the repo because the source of a published document should
+not live only in a session scratchpad.
+
+It documents behaviour, which means it goes stale. The ring section already had
+to be rewritten once: it promised "how much of that domain is done" and a green
+"clear" swatch, both of which stopped being true the moment the arc flipped to
+measuring open work. **A change to what someone sees is a change to this file.**
+
+Republishing updates the artifact only for the author. Viewers keep seeing the
+pinned version until the share pin is moved from the page's share menu, so
+"I published it" is not the same as "they can read it".
+
 ## Formatting
 
 `.prettierrc.json` exists because the repo had a consistent style and nothing

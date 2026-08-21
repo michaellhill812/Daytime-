@@ -1,0 +1,904 @@
+<meta charset="utf-8">
+<title>Daytime Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     DAYTIME FIELD GUIDE
+     A single fixed dark world, on purpose &mdash; Daytime itself has no
+     light mode, and neither does the instrument panel this page
+     borrows its language from. Every color below is painted
+     explicitly rather than switched, so the page holds regardless
+     of the viewer's own theme.
+     ============================================================ */
+
+  :root {
+    --ground:     #0a0b0e;
+    --panel:      #15171d;
+    --panel-2:    #1b1e26;
+    --line:       rgba(241, 239, 231, 0.12);
+    --line-hi:    rgba(241, 239, 231, 0.22);
+    --ink:        #f1efe7;
+    --dim:        rgba(241, 239, 231, 0.64);
+    --faint:      rgba(241, 239, 231, 0.36);
+
+    /* One bold accent, spent mostly on the Wheel &mdash; the instrument's
+       own glow. Wall and World get a quieter identifying hue each,
+       used only on their own tags and diagrams. */
+    --amber:      #d9a356;
+    --amber-dim:  rgba(217, 163, 86, 0.28);
+    --teal:       #5aafa8;
+    --teal-dim:   rgba(90, 175, 168, 0.24);
+    --clay:       #c2796f;
+    --clay-dim:   rgba(194, 121, 111, 0.22);
+
+    --red:        #d9705f;
+    --green:      #6fae7f;
+
+    --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --body:    'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+    --mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+    --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { color-scheme: dark; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    /* A faint drafting-table grid, static &mdash; the one texture on the
+       page, never competing with the diagrams drawn on top of it. */
+    background-image:
+      linear-gradient(rgba(241, 239, 231, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(241, 239, 231, 0.028) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 72px 24px 120px;
+  }
+
+  a { color: var(--amber); }
+
+  /* ------------------------------------------------------------ plate -- */
+
+  .plate {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line-hi);
+    margin-bottom: 20px;
+  }
+
+  .plate__mark {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--faint);
+    text-transform: uppercase;
+  }
+
+  .plate__title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(48px, 9vw, 88px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-top: 6px;
+  }
+
+  .plate__spec {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  .plate__spec b { color: var(--amber); font-weight: 500; }
+
+  .lede {
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--dim);
+    max-width: 64ch;
+    margin: 28px 0 8px;
+  }
+
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* --------------------------------------------------------- sections -- */
+
+  section { margin-top: 76px; }
+
+  .sys-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .sys-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--accent, var(--amber));
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  .sys-head h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 34px;
+    letter-spacing: -0.005em;
+  }
+
+  .sys-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+    margin-left: auto;
+    padding-bottom: 2px;
+  }
+
+  .sys-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  @media (min-width: 720px) {
+    .sys-body { grid-template-columns: 1fr 1fr; align-items: center; }
+    .sys-body.diagram-first { grid-template-columns: 0.9fr 1.1fr; }
+  }
+
+  .sys-copy p { color: var(--dim); margin: 0 0 14px; }
+  .sys-copy p:last-child { margin-bottom: 0; }
+  .sys-copy strong { color: var(--ink); font-weight: 600; }
+
+  .diagram-panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+  }
+
+  /* ------------------------------------------------------------ WHEEL -- */
+
+  .wheel-svg text { font-family: var(--mono); fill: var(--ink); }
+  .wheel-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--faint);
+  }
+  .wheel-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* -------------------------------------------------------------- WALL -- */
+
+  .cards {
+    position: relative;
+    width: 100%;
+    height: 220px;
+  }
+
+  .card {
+    position: absolute;
+    width: 220px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-hi);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .card__tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--clay);
+    background: var(--clay-dim);
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-bottom: 9px;
+  }
+
+  .card__title {
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 5px;
+  }
+
+  .card__line {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line-hi);
+  }
+  .card__line + .card__line { margin-top: 6px; width: 70%; }
+
+  .card--1 { left: 6%;  top: 6%;  transform: rotate(-6deg); z-index: 1; }
+  .card--2 { left: 34%; top: 26%; transform: rotate(3deg);  z-index: 2; }
+  .card--3 { left: 18%; top: 4%;  transform: rotate(10deg); z-index: 3; opacity: 0.001; }
+  .card--3.on { opacity: 1; }
+
+  /* ------------------------------------------------------------- WORLD -- */
+
+  .world-diagram { display: flex; flex-direction: column; gap: 18px; width: 100%; }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .cal-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+  }
+
+  .cal-cell.has-dot { position: relative; }
+  .cal-cell.has-dot::after {
+    content: '';
+    position: absolute;
+    bottom: 3px; left: 50%;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--teal);
+    transform: translateX(-50%);
+  }
+
+  .cal-cell.today {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+  }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .tl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    background: var(--panel-2);
+    border-left: 2px solid var(--tl-color, var(--teal));
+    border-radius: 4px;
+  }
+
+  .tl-time { color: var(--faint); width: 52px; flex: none; }
+  .tl-name { color: var(--ink); font-family: var(--body); font-size: 13px; }
+  .tl-src {
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  /* ---------------------------------------------------------- connect -- */
+
+  .connect {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 30px 10px 10px;
+  }
+
+  .node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+
+  .node__mark {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    border: 1.5px solid var(--node-c);
+    color: var(--node-c);
+    background: color-mix(in srgb, var(--node-c) 12%, transparent);
+  }
+
+  .node__label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--faint);
+    text-align: center;
+    max-width: 96px;
+  }
+
+  .connect-line {
+    flex: 1;
+    min-width: 30px;
+    max-width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+    margin-top: -20px;
+  }
+
+  .connect-line .rule {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-hi), var(--line-hi));
+  }
+
+  .connect-line span {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  /* --------------------------------------------------------- together -- */
+
+  .together {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+  }
+
+  .avatars { display: flex; flex: none; }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 15px;
+    border: 2px solid var(--ground);
+  }
+  .avatar:nth-child(1) { background: var(--amber-dim); color: var(--amber); }
+  .avatar:nth-child(2) { background: var(--teal-dim); color: var(--teal); margin-left: -12px; }
+
+  .together p { margin: 0; color: var(--dim); font-size: 14.5px; }
+  .together strong { color: var(--ink); }
+
+  .notice {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--line-hi);
+    border-left: 2px solid var(--amber);
+    border-radius: 8px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--dim);
+  }
+  .notice b { color: var(--ink); }
+
+  /* ------------------------------------------------------------- steps -- */
+  /* A real install sequence, unlike the diagram sections above &mdash; numbering
+     here encodes an actual order, tap this before that. */
+
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 15px 4px;
+    border-top: 1px solid var(--line);
+  }
+  .step:last-child { border-bottom: 1px solid var(--line); }
+
+  .step-num {
+    flex: none;
+    width: 24px; height: 24px;
+    margin-top: 1px;
+    border-radius: 50%;
+    border: 1.5px solid var(--teal);
+    color: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 11.5px;
+  }
+
+  .step-copy { color: var(--dim); font-size: 14.5px; line-height: 1.55; padding-top: 2px; }
+  .step-copy strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------------------------------------------------------- checklist -- */
+
+  .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+  .check-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 18px 4px;
+    border-top: 1px solid var(--line);
+  }
+  .check-item:last-child { border-bottom: 1px solid var(--line); }
+
+  .check-box {
+    flex: none;
+    width: 22px; height: 22px;
+    margin-top: 2px;
+    border: 1.5px solid var(--line-hi);
+    border-radius: 4px;
+  }
+
+  .check-copy b {
+    display: block;
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 15.5px;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .check-copy span { color: var(--dim); font-size: 14px; }
+
+  /* -------------------------------------------------------------- foot -- */
+
+  footer {
+    margin-top: 90px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="plate">
+    <div>
+      <div class="plate__mark">Reference &mdash; not part of the app</div>
+      <h1 class="plate__title">Daytime</h1>
+    </div>
+    <div class="plate__spec">
+      THREE VIEWS<br>
+      ONE DATASET<br>
+      <b>WHEEL &middot; WALL &middot; WORLD</b>
+    </div>
+  </div>
+
+  <p class="lede">
+    Daytime is a personal operating system for the parts of a life that don't fit
+    in one list &mdash; <strong>work, health, money, the people you're coaching with,
+    the routine that keeps the rest of it running.</strong> It holds one set of
+    facts and shows it to you three different ways, depending on what you're
+    actually trying to do in the moment.
+  </p>
+
+  <!-- ============================================================ WHEEL -->
+  <section style="--accent: var(--amber)">
+    <div class="sys-head">
+      <span class="sys-num">SYS.01</span>
+      <h2>Wheel</h2>
+      <span class="sys-tag">what needs you today</span>
+    </div>
+
+    <div class="sys-body">
+      <div class="sys-copy">
+        <p>
+          The command view. A <strong>spoke</strong> for every domain of your
+          life &mdash; Work, Self-Care, Finances, Sessions, Daily Routine &mdash; each
+          carrying its own tasks, goals, and reference material.
+        </p>
+        <p>
+          The ring around each spoke reads two things at a glance: how much
+          that domain is <strong>carrying</strong> (how far the arc reaches
+          &mdash; longer means more still open), and how hot the hottest of it
+          is (its color &mdash; blue is low priority, amber is medium, red is
+          high). A spoke you've cleared draws no arc at all. The center number
+          is everything across every spoke that has a claim on <em>today</em>,
+          in the color of the most urgent thing in it.
+        </p>
+        <p>
+          Some spokes &mdash; Daily Routine, 60 Second Reset &mdash; aren't task lists at
+          all. They open straight to the procedure itself, because that spoke
+          <em>is</em> the document.
+        </p>
+      </div>
+
+      <div class="diagram-panel">
+        <div>
+          <svg class="wheel-svg" viewBox="0 0 300 300" width="240" height="240">
+            <circle cx="150" cy="150" r="96" fill="none" stroke="var(--line)" stroke-width="9" />
+            <circle cx="150" cy="150" r="96" fill="none" stroke="var(--amber)" stroke-width="9"
+                    stroke-linecap="round" stroke-dasharray="205 604" transform="rotate(-90 150 150)" />
+
+            <g transform="rotate(0 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--amber)" stroke-width="1.5" opacity="0.85" />
+              <circle cx="150" cy="30" r="4" fill="var(--amber)" />
+            </g>
+            <g transform="rotate(51.4 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--green)" stroke-width="1.5" opacity="0.6" />
+              <circle cx="150" cy="30" r="3.5" fill="var(--green)" />
+            </g>
+            <g transform="rotate(102.9 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--clay)" stroke-width="1.5" opacity="0.6" />
+              <circle cx="150" cy="30" r="3.5" fill="var(--clay)" />
+            </g>
+            <g transform="rotate(154.3 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--red)" stroke-width="1.5" opacity="0.75" />
+              <circle cx="150" cy="30" r="4" fill="var(--red)" />
+            </g>
+            <g transform="rotate(205.7 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--teal)" stroke-width="1.5" opacity="0.6" />
+              <circle cx="150" cy="30" r="3.5" fill="var(--teal)" />
+            </g>
+            <g transform="rotate(257.1 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--green)" stroke-width="1.5" opacity="0.6" />
+              <circle cx="150" cy="30" r="3.5" fill="var(--green)" />
+            </g>
+            <g transform="rotate(308.6 150 150)">
+              <line x1="150" y1="90" x2="150" y2="32" stroke="var(--faint)" stroke-width="1.5" opacity="0.6" />
+              <circle cx="150" cy="30" r="3.5" fill="var(--faint)" />
+            </g>
+
+            <circle cx="150" cy="150" r="44" fill="var(--panel-2)" stroke="var(--line-hi)" />
+            <text x="150" y="144" text-anchor="middle" font-size="40" font-weight="700"
+                  font-family="var(--display)">4</text>
+            <text x="150" y="168" text-anchor="middle" font-size="9" letter-spacing="2" fill="var(--faint)">TODAY</text>
+          </svg>
+
+          <div class="wheel-legend">
+            <span><i class="dot" style="background:var(--red)"></i>high, open</span>
+            <span><i class="dot" style="background:var(--amber)"></i>medium, open</span>
+            <span><i class="dot" style="background:var(--teal)"></i>low, open</span>
+            <span><i class="dot" style="background:var(--faint)"></i>clear &mdash; no arc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================= WALL -->
+  <section style="--accent: var(--clay)">
+    <div class="sys-head">
+      <span class="sys-num">SYS.02</span>
+      <h2>Wall</h2>
+      <span class="sys-tag">what you'd pin above a desk</span>
+    </div>
+
+    <div class="sys-body diagram-first">
+      <div class="diagram-panel">
+        <div class="cards">
+          <div class="card card--1">
+            <span class="card__tag">Sessions</span>
+            <div class="card__title">Career Research Findings</div>
+            <div class="card__line"></div><div class="card__line"></div>
+          </div>
+          <div class="card card--2">
+            <span class="card__tag" style="color:var(--amber); background:var(--amber-dim)">Work</span>
+            <div class="card__title">R&eacute;sum&eacute; &mdash; current draft</div>
+            <div class="card__line"></div><div class="card__line"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sys-copy">
+        <p>
+          The reference library. Notes, source documents, links, the exact
+          things you'd otherwise print out and pin up &mdash; filed under a spoke,
+          searchable, sorted by what you've pinned and what you've touched
+          most recently.
+        </p>
+        <p>
+          Anything pulled from a real document stays <strong>word for word</strong>.
+          Daytime doesn't summarize or improve source material &mdash; if it's on
+          the Wall, it's the actual text, so you can trust it the way you'd
+          trust the original.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ WORLD -->
+  <section style="--accent: var(--teal)">
+    <div class="sys-head">
+      <span class="sys-num">SYS.03</span>
+      <h2>World</h2>
+      <span class="sys-tag">the day itself</span>
+    </div>
+
+    <div class="sys-body">
+      <div class="sys-copy">
+        <p>
+          The calendar &mdash; but it isn't only events. Pick a day and it shows one
+          merged schedule: calendar blocks <strong>and</strong> any Wheel task
+          with a time on it, in clock order. Anything without a time &mdash; a
+          someday task, an all-day block &mdash; sits underneath as <em>also
+          today</em>.
+        </p>
+        <p>
+          A quiet dot on the month grid also marks any day something new was
+          pinned to the Wall &mdash; so World doubles as a record of when reference
+          material actually entered the system, not just what's scheduled.
+        </p>
+      </div>
+
+      <div class="diagram-panel">
+        <div class="world-diagram">
+          <div class="cal-grid">
+            <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell has-dot"></div>
+            <div class="cal-cell"></div><div class="cal-cell today"></div><div class="cal-cell"></div>
+            <div class="cal-cell"></div>
+            <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+            <div class="cal-cell has-dot"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+            <div class="cal-cell"></div>
+          </div>
+          <div class="timeline">
+            <div class="tl-row" style="--tl-color: var(--amber)">
+              <span class="tl-time">9:00a</span><span class="tl-name">Working block</span>
+              <span class="tl-src">wheel</span>
+            </div>
+            <div class="tl-row" style="--tl-color: var(--teal)">
+              <span class="tl-time">1:30p</span><span class="tl-name">Coaching session</span>
+              <span class="tl-src">world</span>
+            </div>
+            <div class="tl-row" style="--tl-color: var(--red)">
+              <span class="tl-time">5:00p</span><span class="tl-name">Send r&eacute;sum&eacute;</span>
+              <span class="tl-src">wheel</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- connect -->
+  <section>
+    <div class="sys-head">
+      <h2 style="font-size:24px; color:var(--dim)">One dataset, three lenses</h2>
+    </div>
+    <p style="color:var(--dim); max-width:64ch; margin-bottom:8px">
+      Nothing is re-entered. Give a Wheel task a date and it's already on the
+      calendar. Link it to a Wall document and that document's chip follows
+      the task everywhere it appears. Tap any of it and the item opens in
+      place &mdash; you never actually leave the view you were in.
+    </p>
+
+    <div class="connect">
+      <div class="node" style="--node-c: var(--amber)">
+        <div class="node__mark">WHEEL</div>
+        <div class="node__label">tasks, priority, ring</div>
+      </div>
+      <div class="connect-line">
+        <span>date set</span>
+        <div class="rule"></div>
+      </div>
+      <div class="node" style="--node-c: var(--teal)">
+        <div class="node__mark">WORLD</div>
+        <div class="node__label">the merged schedule</div>
+      </div>
+      <div class="connect-line">
+        <span>added today</span>
+        <div class="rule"></div>
+      </div>
+      <div class="node" style="--node-c: var(--clay)">
+        <div class="node__mark">WALL</div>
+        <div class="node__label">the source material</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- together -->
+  <section>
+    <div class="sys-head">
+      <h2 style="font-size:24px; color:var(--dim)">Working from two places</h2>
+    </div>
+    <div class="together">
+      <div class="avatars">
+        <div class="avatar">M</div>
+        <div class="avatar">L</div>
+      </div>
+      <p>
+        Sign in and the same workspace follows you to every device, and to
+        anyone else you've invited. Changes sync in under a second, and a
+        small bell shows what the other person added &mdash; with a name and a
+        timestamp, not just a day.
+      </p>
+    </div>
+
+    <div class="notice">
+      <b>Use the right account.</b> Sign in with the exact Gmail address that
+      was invited to this workspace &mdash; not just any Google account.
+      If Google says the app is &ldquo;currently being tested,&rdquo; you're
+      signed into the wrong one on this device; switch accounts and try again.
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------- phone -->
+  <section>
+    <div class="sys-head">
+      <h2 style="font-size:24px; color:var(--dim)">Put it on your phone</h2>
+      <span class="sys-tag">iPhone &middot; Safari</span>
+    </div>
+    <p style="color:var(--dim); max-width:64ch; margin-bottom:20px">
+      It runs full screen with no browser bar, like any other app &mdash; and
+      it's the same workspace as everyone else signed in.
+    </p>
+    <ol class="steps">
+      <li class="step">
+        <span class="step-num">1</span>
+        <span class="step-copy">
+          Open the Daytime link in <strong>Safari</strong>. This has to be
+          Safari &mdash; it doesn't work from Chrome or another browser on
+          iPhone.
+        </span>
+      </li>
+      <li class="step">
+        <span class="step-num">2</span>
+        <span class="step-copy">
+          Tap the <strong>Share</strong> icon at the bottom of the screen
+          &mdash; the square with an arrow pointing up.
+        </span>
+      </li>
+      <li class="step">
+        <span class="step-num">3</span>
+        <span class="step-copy">
+          Scroll down the list and tap <strong>Add to Home Screen</strong>.
+        </span>
+      </li>
+      <li class="step">
+        <span class="step-num">4</span>
+        <span class="step-copy">
+          Rename it if you want, then tap <strong>Add</strong> in the top
+          right.
+        </span>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ----------------------------------------------------------- desktop -->
+  <section>
+    <div class="sys-head">
+      <h2 style="font-size:24px; color:var(--dim)">Put it on your computer</h2>
+      <span class="sys-tag">Windows &middot; Chrome or Edge</span>
+    </div>
+    <p style="color:var(--dim); max-width:64ch; margin-bottom:20px">
+      Same idea as the phone: it gets its own window and its own taskbar
+      icon, with no address bar and no tabs. Chrome and Edge both do this;
+      Firefox does not.
+    </p>
+    <ol class="steps">
+      <li class="step">
+        <span class="step-num">1</span>
+        <span class="step-copy">
+          Open the Daytime link in <strong>Chrome</strong> or
+          <strong>Edge</strong> and sign in first, so the installed app opens
+          straight into your workspace.
+        </span>
+      </li>
+      <li class="step">
+        <span class="step-num">2</span>
+        <span class="step-copy">
+          Look at the right-hand end of the address bar for the
+          <strong>install icon</strong> &mdash; a small monitor with an arrow
+          pointing down into it. Click it, then click <strong>Install</strong>.
+        </span>
+      </li>
+      <li class="step">
+        <span class="step-num">3</span>
+        <span class="step-copy">
+          No icon there? Use the menu instead. In Chrome:
+          <strong>&#8942; &rarr; Cast, save and share &rarr; Install page as
+          app</strong>. In Edge: <strong>&#8943; &rarr; Apps &rarr; Install
+          this site as an app</strong>.
+        </span>
+      </li>
+      <li class="step">
+        <span class="step-num">4</span>
+        <span class="step-copy">
+          Daytime opens in its own window. <strong>Right-click its icon in
+          the taskbar</strong> and choose <strong>Pin to taskbar</strong> so
+          it stays there after you close it. Edge offers a
+          &ldquo;Pin to taskbar&rdquo; tickbox right after installing &mdash;
+          same thing.
+        </span>
+      </li>
+    </ol>
+
+    <div class="notice">
+      <b>On a Mac,</b> it's the same first three steps in Chrome or Edge. The
+      app lands in your Applications folder; to keep it in the Dock, open it,
+      then right-click its Dock icon and choose
+      <b>Options &rarr; Keep in Dock</b>.
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- quickstart -->
+  <section>
+    <div class="sys-head">
+      <h2 style="font-size:24px; color:var(--dim)">First five minutes</h2>
+    </div>
+    <ol class="checklist">
+      <li class="check-item">
+        <span class="check-box"></span>
+        <span class="check-copy">
+          <b>Open Wheel, tap a spoke, add today's first task.</b>
+          <span>Give it a priority &mdash; that's what colors its arc.</span>
+        </span>
+      </li>
+      <li class="check-item">
+        <span class="check-box"></span>
+        <span class="check-copy">
+          <b>Pin a real document to the Wall, under that same spoke.</b>
+          <span>Paste it as written &mdash; Daytime keeps it that way.</span>
+        </span>
+      </li>
+      <li class="check-item">
+        <span class="check-box"></span>
+        <span class="check-copy">
+          <b>Give the task a date and time.</b>
+          <span>Watch it appear on World without entering it twice.</span>
+        </span>
+      </li>
+      <li class="check-item">
+        <span class="check-box"></span>
+        <span class="check-copy">
+          <b>Check World each morning; read the ring on the Wheel.</b>
+          <span>One tells you what's happening, the other what's hot.</span>
+        </span>
+      </li>
+    </ol>
+  </section>
+
+  <footer>
+    DAYTIME &middot; FIELD GUIDE &middot; this page documents the app &mdash; it isn't part of it
+  </footer>
+
+</div>

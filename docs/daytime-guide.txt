@@ -1,0 +1,124 @@
+DAYTIME — HOW IT WORKS
+
+Daytime is a personal operating system for the parts of a life that don't fit
+in one list — work, health, money, the people you're coaching with, the
+routine that keeps the rest of it running. It holds one set of facts and
+shows it to you three different ways, depending on what you're actually
+trying to do in the moment: Wheel, Wall, World.
+
+
+WHEEL — what needs you today
+-----------------------------
+The command view. A spoke for every domain of your life — Work, Self-Care,
+Finances, Sessions, Daily Routine, Personal — each carrying its own tasks,
+goals, and reference material.
+
+The ring around each spoke reads two things at a glance: how much that
+domain is carrying (how far the arc reaches — longer means more still
+open), and how hot the hottest of it is (its color — blue is low priority,
+amber is medium, red is high). A spoke you've cleared draws no arc at all.
+The center number is everything across every spoke that has a claim on
+today, in the color of the most urgent thing in it.
+
+Some spokes — Daily Routine, 60 Second Reset — aren't task lists at all.
+They open straight to the procedure itself, because that spoke IS the
+document.
+
+
+WALL — what you'd pin above a desk
+------------------------------------
+The reference library. Notes, source documents, links — the exact things
+you'd otherwise print out and pin up — filed under a spoke, searchable,
+sorted by what you've pinned and what you've touched most recently.
+
+Anything pulled from a real document stays word for word. Daytime doesn't
+summarize or improve source material — if it's on the Wall, it's the actual
+text, so you can trust it the way you'd trust the original.
+
+
+WORLD — the day itself
+------------------------
+The calendar — but it isn't only events. Pick a day and it shows one merged
+schedule: calendar blocks and any Wheel task with a time on it, in clock
+order. Anything without a time — a someday task, an all-day block — sits
+underneath as "also today."
+
+A quiet dot on the month grid also marks any day something new was pinned
+to the Wall, so World doubles as a record of when reference material
+actually entered the system, not just what's scheduled.
+
+
+ONE DATASET, THREE LENSES
+---------------------------
+Nothing is re-entered. Give a Wheel task a date and it's already on the
+calendar. Link it to a Wall document and that document's chip follows the
+task everywhere it appears. Tap any of it and the item opens in place — you
+never actually leave the view you were in.
+
+
+WORKING FROM TWO PLACES
+-------------------------
+Sign in and the same workspace follows you to every device, and to anyone
+else who's been invited. Changes sync in under a second, and a small bell
+shows what the other person added — with a name and a timestamp, not just
+a day.
+
+
+SIGNING IN
+------------
+Tap "Continue with Google" and pick your account — that's the whole thing,
+no password, no code to type.
+
+IMPORTANT: you have to sign in with the specific Gmail address that was
+invited to this workspace — not just any Google account. The app is
+running in a testing mode with Google, so only addresses that have been
+added by name will be let in. If Google says something like "this app is
+currently being tested," it means you're signed into the wrong Google
+account on this device — switch accounts and try again with the right one.
+
+
+PUTTING IT ON YOUR PHONE (iPhone / Safari)
+---------------------------------------------
+1. Open the Daytime link in Safari (it has to be Safari — this doesn't
+   work from Chrome or another browser on iPhone).
+2. Tap the Share icon at the bottom of the screen — the square with an
+   arrow pointing up.
+3. Scroll down the list of options and tap "Add to Home Screen."
+4. Rename it if you want, then tap "Add" in the top right.
+
+It now sits on your home screen like any other app — full screen, no
+browser bar, and it's the same workspace as everyone else signed in.
+
+
+PUTTING IT ON YOUR COMPUTER (Windows / Chrome or Edge)
+---------------------------------------------------------
+Same idea as the phone: Daytime gets its own window and its own taskbar
+icon, with no address bar and no tabs. Chrome and Edge both do this;
+Firefox does not.
+
+1. Open the Daytime link in Chrome or Edge and sign in first, so the
+   installed app opens straight into your workspace.
+2. Look at the right-hand end of the address bar for the install icon — a
+   small monitor with an arrow pointing down into it. Click it, then click
+   "Install."
+3. No icon there? Use the menu instead. In Chrome: ⋮ → Cast, save and share
+   → Install page as app. In Edge: ⋯ → Apps → Install this site as an app.
+4. Daytime opens in its own window. Right-click its icon in the taskbar and
+   choose "Pin to taskbar" so it stays there after you close it. Edge offers
+   a "Pin to taskbar" tickbox right after installing — same thing.
+
+On a Mac it's the same first three steps in Chrome or Edge. The app lands in
+your Applications folder; to keep it in the Dock, open it, then right-click
+its Dock icon and choose Options → Keep in Dock.
+
+
+FIRST FIVE MINUTES
+---------------------
+1. Open Wheel, tap a spoke, add today's first task. Give it a priority —
+   that's what colors its arc.
+2. Pin a real document to the Wall, under that same spoke. Paste it as
+   written — Daytime keeps it that way.
+3. Give the task a date and time. Watch it appear on World without
+   entering it twice.
+4. Check World each morning; read the ring on the Wheel. One tells you
+   what's happening, the other what's hot.
